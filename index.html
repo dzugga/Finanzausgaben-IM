@@ -576,6 +576,7 @@ onSnapshot(doc(db,'config','settings'), snap => {
 setTimeout(() => {
   document.getElementById('loader').classList.add('gone');
   document.getElementById('app').style.display = 'flex';
+  window._settings = settings;
   renderOverview();
   initAddForm();
 }, 1400);
@@ -591,6 +592,7 @@ function refreshActiveSection() {
 }
 
 async function saveSettings() {
+  window._settings = settings;
   setSyncStatus('syncing','Speichern…');
   try {
     await setDoc(doc(db,'config','settings'), settings);
@@ -818,7 +820,7 @@ function renderSettings() {
   document.getElementById('dark-toggle').checked=isDark;
   document.getElementById('cat-tags').innerHTML=settings.categories.map(c=>`<span class="stag"><span style="width:12px;height:12px;border-radius:50%;background:${c.color};display:inline-block"></span>${c.name}<button class="stag-del" onclick="delCat('${c.id}')">×</button></span>`).join('');
   document.getElementById('person-tags').innerHTML=settings.persons.map(p=>`<span class="stag">${p}<button class="stag-del" onclick="delPerson('${p}')">×</button></span>`).join('');
-  document.getElementById('budget-inputs').innerHTML=settings.categories.map(cat=>`<div class="bl-row"><div class="bl-dot" style="background:${cat.color}"></div><span class="bl-name">${cat.name}</span><input class="bl-input" type="text" inputmode="decimal" value="${settings.budgets[cat.id]||''}" placeholder="–" oninput="setBudget('${cat.id}',this.value)"><span class="bl-unit">€/Monat</span></div>`).join('');
+  document.getElementById('budget-inputs').innerHTML=settings.categories.map(cat=>`<div class="bl-row" onclick="openPadFor('budget','${cat.id}','${cat.name}')" style="cursor:pointer"><div class="bl-dot" style="background:${cat.color}"></div><span class="bl-name">${cat.name}</span><span id="budget-display-${cat.id}" style="font-size:16px;color:${settings.budgets[cat.id]?'var(--text)':'var(--text3)'};">${settings.budgets[cat.id]?settings.budgets[cat.id].toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €':'–'}</span><i class="ti ti-chevron-right" style="color:var(--text3);font-size:14px;margin-left:6px"></i></div>`).join('');
 }
 window.renderSettings=renderSettings;
 
@@ -873,7 +875,7 @@ if('serviceWorker' in navigator){
 <div id="numpad-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.4);" onclick="if(event.target===this)closePad()">
   <div id="numpad-sheet" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:16px 16px calc(16px + var(--safe-bottom));box-shadow:0 -4px 24px rgba(0,0,0,.2);">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <span style="font-size:15px;font-weight:600;color:var(--text2)">Betrag eingeben</span>
+      <span id="pad-title" style="font-size:15px;font-weight:600;color:var(--text2)">Betrag eingeben</span>
       <button onclick="closePad()" style="background:var(--surface2);border:none;border-radius:99px;width:30px;height:30px;font-size:18px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">×</button>
     </div>
     <div id="pad-display" style="text-align:right;font-size:40px;font-weight:700;letter-spacing:-1px;color:var(--text);padding:8px 4px 16px;min-height:64px;border-bottom:0.5px solid var(--sep);margin-bottom:12px;">0,00</div>
@@ -916,26 +918,48 @@ if('serviceWorker' in navigator){
 <script>
 let padVal = '';
 
-function openPad() {
-  const cur = document.getElementById('f-amount').value;
-  padVal = cur ? cur.replace('.', ',') : '';
+let padContext = null; // {type:'amount'} or {type:'budget', id:'...', name:'...'}
+
+function openPad() { openPadFor('amount'); }
+
+function openPadFor(type, id, name) {
+  padContext = {type, id, name};
+  if (type === 'amount') {
+    const cur = document.getElementById('f-amount').value;
+    padVal = cur ? cur.replace('.', ',') : '';
+    document.getElementById('pad-title').textContent = 'Betrag eingeben';
+  } else if (type === 'budget') {
+    const cur = window._settings ? (window._settings.budgets[id] || '') : '';
+    padVal = cur ? cur.toString().replace('.', ',') : '';
+    document.getElementById('pad-title').textContent = name + ' – Budget';
+  }
   updatePadDisplay();
   document.getElementById('numpad-overlay').style.display = 'block';
-  // Prevent body scroll
   document.body.style.overflow = 'hidden';
 }
 
 function closePad() {
   document.getElementById('numpad-overlay').style.display = 'none';
   document.body.style.overflow = '';
+  padContext = null;
 }
 
-function confirmPad() {
+async function confirmPad() {
   const num = parseFloat(padVal.replace(',', '.')) || 0;
-  document.getElementById('f-amount').value = num.toString();
-  const display = num > 0 ? num.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0,00';
-  document.getElementById('amt-display').textContent = display;
-  document.getElementById('amt-display').style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
+  if (!padContext || padContext.type === 'amount') {
+    document.getElementById('f-amount').value = num.toString();
+    const display = num > 0 ? num.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0,00';
+    document.getElementById('amt-display').textContent = display;
+    document.getElementById('amt-display').style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
+  } else if (padContext.type === 'budget') {
+    const id = padContext.id;
+    const dispEl = document.getElementById('budget-display-' + id);
+    if (dispEl) {
+      dispEl.textContent = num > 0 ? num.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €' : '–';
+      dispEl.style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
+    }
+    if (window.setBudget) await window.setBudget(id, num > 0 ? num.toString() : '');
+  }
   closePad();
 }
 
