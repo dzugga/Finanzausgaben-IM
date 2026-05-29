@@ -1,5 +1,5 @@
 const CACHE_NAME = 'ausgaben-v2';
-const BASE = '/Finanz-IM';
+const BASE = '/Finanzausgaben-IM';
 const ASSETS = [
   BASE + '/',
   BASE + '/index.html',
