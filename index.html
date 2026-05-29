@@ -482,6 +482,12 @@ input, select, textarea { font-size: 16px; }
       </div>
 
       <div class="version-tag">Ausgaben App v2.0 · Firebase Sync</div>
+      <div style="padding:0 16px 8px">
+        <button onclick="checkForUpdate()" id="update-btn" style="width:100%;padding:14px;background:var(--surface);border:0.5px solid var(--sep);border-radius:var(--radius);font-size:15px;font-weight:600;font-family:inherit;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          <i class="ti ti-refresh" id="update-icon"></i>
+          <span id="update-label">Auf Updates prüfen</span>
+        </button>
+      </div>
     </div>
 
   </div>
@@ -871,11 +877,87 @@ document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefaul
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 
 // Service Worker
+let swReg = null;
 if('serviceWorker' in navigator){
-  window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('/Finanzausgaben-IM/sw.js').catch(()=>{});
+  window.addEventListener('load', async () => {
+    try {
+      swReg = await navigator.serviceWorker.register('/Finanzausgaben-IM/sw.js');
+
+      // Listen for new SW waiting → show update available
+      swReg.addEventListener('updatefound', () => {
+        const newSW = swReg.installing;
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateReady();
+          }
+        });
+      });
+
+      // If SW already waiting on load
+      if (swReg.waiting) showUpdateReady();
+
+      // Reload after SW takes control
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        window.location.reload();
+      });
+    } catch(e) {}
   });
 }
+
+function showUpdateReady() {
+  const btn = document.getElementById('update-btn');
+  const label = document.getElementById('update-label');
+  const icon = document.getElementById('update-icon');
+  if (!btn) return;
+  btn.style.background = 'var(--accent)';
+  btn.style.color = '#fff';
+  btn.style.borderColor = 'var(--accent)';
+  if (icon) icon.className = 'ti ti-download';
+  if (label) label.textContent = 'Update verfügbar – Jetzt installieren';
+}
+
+async function checkForUpdate() {
+  const btn = document.getElementById('update-btn');
+  const label = document.getElementById('update-label');
+  const icon = document.getElementById('update-icon');
+
+  // Animate
+  if (icon) { icon.style.animation = 'spin .7s linear infinite'; }
+  if (label) label.textContent = 'Prüfe auf Updates…';
+
+  try {
+    if (swReg) {
+      await swReg.update();
+      await new Promise(r => setTimeout(r, 1200));
+
+      if (swReg.waiting) {
+        // New version ready → activate it
+        if (icon) icon.style.animation = '';
+        showUpdateReady();
+        // Auto-activate
+        swReg.waiting.postMessage({type:'SKIP_WAITING'});
+      } else {
+        // Already up to date
+        if (icon) { icon.style.animation=''; icon.className='ti ti-circle-check'; }
+        if (label) label.textContent = 'App ist aktuell ✓';
+        if (btn) { btn.style.color='var(--green)'; btn.style.borderColor='var(--green)'; }
+        setTimeout(() => {
+          if (icon) icon.className = 'ti ti-refresh';
+          if (label) label.textContent = 'Auf Updates prüfen';
+          if (btn) { btn.style.color='var(--accent)'; btn.style.borderColor='var(--sep)'; btn.style.background='var(--surface)'; }
+        }, 3000);
+      }
+    }
+  } catch(e) {
+    if (icon) { icon.style.animation=''; icon.className='ti ti-alert-circle'; }
+    if (label) label.textContent = 'Fehler – Bitte Internetverbindung prüfen';
+    setTimeout(() => {
+      if (icon) icon.className='ti ti-refresh';
+      if (label) label.textContent='Auf Updates prüfen';
+    }, 3000);
+  }
+}
+window.checkForUpdate = checkForUpdate;
 </script>
 
 <!-- NUMPAD OVERLAY -->
