@@ -694,8 +694,14 @@ function renderBudgetBars(mE,yE) {
     const budget=(settings.budgets[cat.id]||0)*f;
     const pct=budget>0?Math.min(100,spent/budget*100):0;
     const col=pct>=100?'var(--red)':pct>=80?'var(--orange)':cat.color;
-    return `<div class="budget-row-item">
-      <div class="budget-top"><span class="bname">${cat.name}</span><span class="bnums">${fmtEur(spent)} / ${fmtEur(budget)}</span></div>
+    return `<div class="budget-row-item" onclick="openCatDetail('${cat.id}')" style="cursor:pointer">
+      <div class="budget-top">
+        <span class="bname">${cat.name}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="bnums">${fmtEur(spent)} / ${fmtEur(budget)}</span>
+          <i class="ti ti-chevron-right" style="font-size:13px;color:var(--text3)"></i>
+        </div>
+      </div>
       <div class="btrack"><div class="bfill" style="width:${pct}%;background:${col}"></div></div>
     </div>`;
   }).join('');
@@ -737,6 +743,10 @@ window.saveEntry = async () => {
     document.getElementById('f-amount').value='';
     document.getElementById('f-desc').value='';
     document.getElementById('f-note').value='';
+    // Reset amount display to 0,00
+    padVal = '';
+    document.getElementById('amt-display').textContent = '0,00';
+    document.getElementById('amt-display').style.color = 'var(--text3)';
     goTab('overview','Übersicht',document.querySelector('.tab'));
     setSyncStatus('ok','Gespeichert ✓');
   } catch(e){setSyncStatus('err','Fehler');}
@@ -1258,6 +1268,107 @@ window.confirmPad = async function() {
   }
   if (_origConfirmPad2) await _origConfirmPad2();
 };
+</script>
+
+
+<!-- CATEGORY DETAIL MODAL -->
+<div id="catdetail-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);" onclick="if(event.target===this)closeCatDetail()">
+  <div id="catdetail-sheet" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;max-height:85vh;display:flex;flex-direction:column;">
+    <!-- Handle -->
+    <div style="display:flex;justify-content:center;padding:10px 0 0;flex-shrink:0">
+      <div style="width:36px;height:4px;border-radius:99px;background:var(--surface3)"></div>
+    </div>
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0;flex-shrink:0">
+      <div>
+        <div id="catdetail-title" style="font-size:20px;font-weight:700"></div>
+        <div id="catdetail-sub" style="font-size:13px;color:var(--text2);margin-top:2px"></div>
+      </div>
+      <button onclick="closeCatDetail()" style="background:var(--surface2);border:none;border-radius:99px;width:30px;height:30px;font-size:18px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">×</button>
+    </div>
+    <!-- Summary bar -->
+    <div id="catdetail-bar-wrap" style="padding:14px 20px 10px;flex-shrink:0">
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:6px">
+        <span id="catdetail-spent-label">Ausgegeben</span>
+        <span id="catdetail-pct"></span>
+      </div>
+      <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden">
+        <div id="catdetail-bar" style="height:100%;border-radius:99px;transition:width .5s"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px">
+        <span id="catdetail-spent" style="font-size:22px;font-weight:700"></span>
+        <span id="catdetail-budget" style="font-size:14px;color:var(--text2);align-self:flex-end;padding-bottom:2px"></span>
+      </div>
+    </div>
+    <div style="height:0.5px;background:var(--sep);flex-shrink:0;margin:0 16px"></div>
+    <!-- Entry list -->
+    <div id="catdetail-list" style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:calc(16px + var(--safe-bottom))"></div>
+  </div>
+</div>
+
+<script>
+function openCatDetail(catId) {
+  const cat = window._settings ? window._settings.categories.find(c=>c.id===catId) : null;
+  if (!cat) return;
+  const now = new Date();
+  const m = now.getMonth(), y = now.getFullYear();
+  const bPeriodCurrent = document.getElementById('bp-m').classList.contains('active') ? 'm' : 'j';
+  const allEntries = window._entries || [];
+
+  let catEntries;
+  if (bPeriodCurrent === 'm') {
+    catEntries = allEntries.filter(e => {
+      const d = new Date(e.date);
+      return d.getMonth()===m && d.getFullYear()===y && e.category===catId;
+    });
+  } else {
+    catEntries = allEntries.filter(e => new Date(e.date).getFullYear()===y && e.category===catId);
+  }
+  catEntries.sort((a,b)=>b.date.localeCompare(a.date));
+
+  const spent = catEntries.reduce((s,e)=>s+e.amount, 0);
+  const budget = window._settings.budgets[catId] || 0;
+  const factor = bPeriodCurrent==='j' ? 12 : 1;
+  const budgetTotal = budget * factor;
+  const pct = budgetTotal > 0 ? Math.min(100, spent/budgetTotal*100) : 0;
+  const col = pct>=100 ? 'var(--red)' : pct>=80 ? 'var(--orange)' : cat.color;
+
+  document.getElementById('catdetail-title').textContent = cat.name;
+  document.getElementById('catdetail-sub').textContent = bPeriodCurrent==='m'
+    ? now.toLocaleDateString('de-DE',{month:'long',year:'numeric'})
+    : 'Jahr ' + y;
+  document.getElementById('catdetail-spent').textContent = fmtEur(spent);
+  document.getElementById('catdetail-bar').style.width = pct + '%';
+  document.getElementById('catdetail-bar').style.background = col;
+  document.getElementById('catdetail-pct').textContent = budgetTotal > 0 ? Math.round(pct) + '%' : '';
+  document.getElementById('catdetail-budget').textContent = budgetTotal > 0 ? 'von ' + fmtEur(budgetTotal) : 'Kein Budget gesetzt';
+
+  // Entry list
+  const listEl = document.getElementById('catdetail-list');
+  if (!catEntries.length) {
+    listEl.innerHTML = '<div class="empty"><i class="ti ti-receipt-off"></i><p>Keine Einträge</p></div>';
+  } else {
+    listEl.innerHTML = catEntries.map(e => `
+      <div class="row" onclick="closeCatDetail();setTimeout(()=>openEdit('${e.id}'),200)" style="cursor:pointer">
+        <div class="row-body">
+          <div class="row-title">${e.desc}${e.note?` <span style="font-size:12px;color:var(--text3)">– ${e.note}</span>`:''}</div>
+          <div class="row-sub">${e.person} · ${new Date(e.date).toLocaleDateString('de-DE')}</div>
+        </div>
+        <span class="row-right bold">${fmtEur(e.amount)}</span>
+        <i class="ti ti-chevron-right" style="color:var(--text3);font-size:14px;margin-left:4px"></i>
+      </div>`).join('');
+  }
+
+  document.getElementById('catdetail-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+window.openCatDetail = openCatDetail;
+
+function closeCatDetail() {
+  document.getElementById('catdetail-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+window.closeCatDetail = closeCatDetail;
 </script>
 
 </body>
