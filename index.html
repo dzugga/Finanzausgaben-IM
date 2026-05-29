@@ -1029,7 +1029,13 @@ function openPadFor(type, id, name) {
 
 function closePad() {
   document.getElementById('numpad-overlay').style.display = 'none';
-  document.body.style.overflow = '';
+  // If we were editing an entry amount, restore the edit overlay
+  if (padContext && padContext.type === 'edit-amount') {
+    document.getElementById('edit-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
   padContext = null;
 }
 
@@ -1222,11 +1228,11 @@ window.openPadFor = function(type, id, name) {
   if (type === 'edit-amount') {
     padContext = {type: 'edit-amount'};
     const cur = document.getElementById('edit-amount-hidden').value;
-    padVal = cur ? parseFloat(cur).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}).replace(/\./g,'').replace(',',',') : '';
-    // Clean value: just digits and comma
     padVal = cur ? (parseFloat(cur) > 0 ? parseFloat(cur).toString().replace('.', ',') : '') : '';
     document.getElementById('pad-title').textContent = 'Betrag bearbeiten';
     updatePadDisplay();
+    // iOS fix: move numpad ABOVE edit overlay by briefly hiding edit overlay
+    document.getElementById('edit-overlay').style.display = 'none';
     document.getElementById('numpad-overlay').style.display = 'block';
     document.body.style.overflow = 'hidden';
     return;
@@ -1245,7 +1251,9 @@ window.confirmPad = async function() {
     document.getElementById('edit-amt-display').style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
     padContext = null;
     document.getElementById('numpad-overlay').style.display = 'none';
-    document.body.style.overflow = '';
+    // Restore edit overlay
+    document.getElementById('edit-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
     return;
   }
   if (_origConfirmPad2) await _origConfirmPad2();
