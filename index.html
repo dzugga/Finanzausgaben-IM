@@ -489,7 +489,7 @@ input, select, textarea { font-size: 16px; }
   <!-- TAB BAR -->
   <div class="tabbar">
     <button class="tab active" onclick="goTab('overview','Übersicht',this)"><i class="ti ti-layout-dashboard"></i><span>Übersicht</span></button>
-    <button class="tab" onclick="goTab('add','Neu',this)"><i class="ti ti-plus-circle"></i><span>Neu</span></button>
+    <button class="tab" onclick="goTab('add','Ausgabe',this)"><i class="ti ti-receipt"></i><span>Ausgabe</span></button>
     <button class="tab" onclick="goTab('entries','Einträge',this)"><i class="ti ti-list"></i><span>Einträge</span></button>
     <button class="tab" onclick="goTab('charts','Auswertung',this)"><i class="ti ti-chart-pie-2"></i><span>Charts</span></button>
     <button class="tab" onclick="goTab('settings','Einstellungen',this)"><i class="ti ti-settings"></i><span>Mehr</span></button>
@@ -551,6 +551,7 @@ if (savedTheme) applyTheme(savedTheme === 'dark');
 else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
 
 // ---- SYNC PILL ----
+window.setSyncStatus = function(state, text) { setSyncStatus(state, text); };
 function setSyncStatus(state, text) {
   const pill = document.getElementById('sync-pill');
   const txt = document.getElementById('sync-txt');
@@ -563,6 +564,7 @@ function setSyncStatus(state, text) {
 // ---- FIRESTORE ----
 onSnapshot(collection(db,'entries'), snap => {
   entries = snap.docs.map(d => ({id:d.id,...d.data()}));
+  window._entries = entries;
   refreshActiveSection();
   setSyncStatus('ok','Synchronisiert');
 }, () => setSyncStatus('err','Verbindungsfehler'));
@@ -737,14 +739,14 @@ window.saveEntry = async () => {
 // ---- ENTRY ROW ----
 function rowHTML(e,showDel) {
   const cat=getCat(e.category);
-  return `<div class="row">
+  return `<div class="row" ${showDel?`onclick="openEdit('${e.id}')" style="cursor:pointer"`:''}  >
     <div class="row-icon" style="background:${cat.color}20"><i class="ti ti-tag" style="color:${cat.color}"></i></div>
     <div class="row-body">
       <div class="row-title">${e.desc}</div>
       <div class="row-sub">${cat.name} · ${e.person} · ${new Date(e.date).toLocaleDateString('de-DE')}${e.note?' · '+e.note:''}</div>
     </div>
     <span class="row-right bold">${fmtEur(e.amount)}</span>
-    ${showDel?`<button class="row-del" onclick="delEntry('${e.id}')"><i class="ti ti-trash"></i></button>`:''}
+    ${showDel?`<i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px;margin-left:4px"></i>`:''}
   </div>`;
 }
 
@@ -1002,6 +1004,166 @@ window.initAddForm = function() {
   document.getElementById('amt-display').textContent = '0,00';
   document.getElementById('amt-display').style.color = 'var(--text3)';
   document.getElementById('f-amount').value = '';
+};
+</script>
+
+
+<!-- EDIT MODAL -->
+<div id="edit-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);" onclick="if(event.target===this)closeEdit()">
+  <div id="edit-sheet" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 calc(16px + var(--safe-bottom));max-height:90vh;overflow-y:auto;">
+    
+    <!-- Handle -->
+    <div style="display:flex;justify-content:center;padding:10px 0 0">
+      <div style="width:36px;height:4px;border-radius:99px;background:var(--surface3)"></div>
+    </div>
+    
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px">
+      <span style="font-size:17px;font-weight:700">Eintrag bearbeiten</span>
+      <button onclick="closeEdit()" style="background:var(--surface2);border:none;border-radius:99px;width:30px;height:30px;font-size:18px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">×</button>
+    </div>
+
+    <!-- Betrag -->
+    <div style="margin:0 16px 12px">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;padding:0 4px 6px">Betrag & Beschreibung</div>
+      <div style="background:var(--surface2);border-radius:var(--radius);overflow:hidden">
+        <div class="form-row" onclick="openPadFor('edit-amount')" style="cursor:pointer;background:var(--surface2)">
+          <span class="form-lbl">Betrag (€)</span>
+          <input type="hidden" id="edit-amount-hidden">
+          <span id="edit-amt-display" style="flex:1;text-align:right;font-size:22px;font-weight:600;color:var(--text);padding:10px 0;letter-spacing:-.5px">0,00</span>
+          <i class="ti ti-calculator" style="color:var(--text3);font-size:18px;margin-left:6px"></i>
+        </div>
+        <div class="form-row" style="background:var(--surface2)"><span class="form-lbl">Beschreibung</span><input type="text" id="edit-desc" autocomplete="off" autocorrect="off" autocapitalize="sentences" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;caret-color:var(--accent)"></div>
+        <div class="form-row" style="background:var(--surface2);border-bottom:none"><span class="form-lbl">Datum</span><input type="date" id="edit-date" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;"></div>
+      </div>
+    </div>
+
+    <!-- Details -->
+    <div style="margin:0 16px 16px">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;padding:0 4px 6px">Details</div>
+      <div style="background:var(--surface2);border-radius:var(--radius);overflow:hidden">
+        <div class="form-row" style="background:var(--surface2)"><span class="form-lbl">Kategorie</span><select id="edit-cat" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;cursor:pointer;"></select></div>
+        <div class="form-row" style="background:var(--surface2)"><span class="form-lbl">Person</span><select id="edit-person" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;cursor:pointer;"></select></div>
+        <div class="form-row" style="background:var(--surface2);border-bottom:none"><span class="form-lbl">Notiz</span><input type="text" id="edit-note" placeholder="Optional" autocomplete="off" autocorrect="off" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;caret-color:var(--accent)"></div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div style="padding:0 16px;display:flex;flex-direction:column;gap:10px">
+      <button onclick="saveEdit()" style="width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;">Änderungen speichern</button>
+      <button onclick="deleteFromEdit()" style="width:100%;padding:15px;background:rgba(255,59,48,.12);color:var(--red);border:none;border-radius:var(--radius);font-size:17px;font-weight:600;font-family:inherit;cursor:pointer;">Eintrag löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let editingId = null;
+
+function openEdit(id) {
+  const e = window._entries ? window._entries.find(x=>x.id===id) : null;
+  if (!e) return;
+  editingId = id;
+
+  // Populate fields
+  const amt = e.amount || 0;
+  document.getElementById('edit-amount-hidden').value = amt;
+  document.getElementById('edit-amt-display').textContent = amt.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('edit-amt-display').style.color = 'var(--text)';
+  document.getElementById('edit-desc').value = e.desc || '';
+  document.getElementById('edit-date').value = e.date || '';
+  document.getElementById('edit-note').value = e.note || '';
+
+  // Populate selects
+  const cats = window._settings ? window._settings.categories : [];
+  const persons = window._settings ? window._settings.persons : [];
+  document.getElementById('edit-cat').innerHTML = cats.map(c=>`<option value="${c.id}"${c.id===e.category?' selected':''}>${c.name}</option>`).join('');
+  document.getElementById('edit-person').innerHTML = persons.map(p=>`<option value="${p}"${p===e.person?' selected':''}>${p}</option>`).join('');
+
+  // Show modal
+  document.getElementById('edit-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+window.openEdit = openEdit;
+
+function closeEdit() {
+  document.getElementById('edit-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+  editingId = null;
+}
+window.closeEdit = closeEdit;
+
+async function saveEdit() {
+  if (!editingId) return;
+  const amount = parseFloat(document.getElementById('edit-amount-hidden').value) || 0;
+  const desc = document.getElementById('edit-desc').value.trim();
+  const date = document.getElementById('edit-date').value;
+  const category = document.getElementById('edit-cat').value;
+  const person = document.getElementById('edit-person').value;
+  const note = document.getElementById('edit-note').value.trim();
+  if (!desc || !amount || !date) { alert('Bitte Betrag, Beschreibung und Datum angeben.'); return; }
+  if (window.setSyncStatus) window.setSyncStatus('syncing','Speichern…');
+  try {
+    const { getFirestore, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+    const app = getApps()[0];
+    const db = getFirestore(app);
+    await updateDoc(doc(db,'entries',editingId), {desc,amount,date,category,person,note});
+    if (window.setSyncStatus) window.setSyncStatus('ok','Gespeichert ✓');
+    closeEdit();
+  } catch(err) {
+    if (window.setSyncStatus) window.setSyncStatus('err','Fehler');
+    console.error(err);
+  }
+}
+
+async function deleteFromEdit() {
+  if (!editingId) return;
+  if (!confirm('Eintrag wirklich löschen?')) return;
+  if (window.setSyncStatus) window.setSyncStatus('syncing','Löschen…');
+  try {
+    const { getFirestore, doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+    const { getApps } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+    const app = getApps()[0];
+    const db = getFirestore(app);
+    await deleteDoc(doc(db,'entries',editingId));
+    if (window.setSyncStatus) window.setSyncStatus('ok','Gelöscht ✓');
+    closeEdit();
+  } catch(err) {
+    if (window.setSyncStatus) window.setSyncStatus('err','Fehler');
+  }
+}
+
+// Hook numpad into edit-amount field
+const _origOpenPadFor = window.openPadFor;
+window.openPadFor = function(type, id, name) {
+  if (type === 'edit-amount') {
+    window._padContext_override = {type:'edit-amount'};
+    const cur = document.getElementById('edit-amount-hidden').value;
+    window.padVal = cur ? cur.replace('.', ',') : '';
+    document.getElementById('pad-title').textContent = 'Betrag eingeben';
+    window.updatePadDisplay();
+    document.getElementById('numpad-overlay').style.display = 'block';
+    return;
+  }
+  if (_origOpenPadFor) _origOpenPadFor(type, id, name);
+};
+
+// Hook confirmPad for edit-amount
+const _origConfirmPad = window.confirmPad;
+window.confirmPad = async function() {
+  if (window._padContext_override && window._padContext_override.type === 'edit-amount') {
+    const num = parseFloat(window.padVal.replace(',','.')) || 0;
+    document.getElementById('edit-amount-hidden').value = num.toString();
+    const display = num > 0 ? num.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}) : '0,00';
+    document.getElementById('edit-amt-display').textContent = display;
+    document.getElementById('edit-amt-display').style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
+    window._padContext_override = null;
+    document.getElementById('numpad-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+    return;
+  }
+  window._padContext_override = null;
+  if (_origConfirmPad) await _origConfirmPad();
 };
 </script>
 
