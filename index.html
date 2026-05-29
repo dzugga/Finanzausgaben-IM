@@ -263,10 +263,11 @@ body {
 .stag { display: flex; align-items: center; gap: 5px; padding: 5px 10px 5px 8px; background: var(--surface2); border-radius: 99px; font-size: 14px; }
 .stag-del { background: none; border: none; color: var(--text3); font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
 .stag-del:active { color: var(--red); }
-.inline-add { display: flex; gap: 8px; padding: 10px 16px 14px; }
-.inline-add input[type=text] { flex: 1; padding: 9px 12px; background: var(--surface2); border: none; border-radius: var(--radius-sm); font-size: 16px; font-family: inherit; color: var(--text); outline: none; -webkit-appearance: none; }
-.inline-add input[type=color] { width: 42px; height: 42px; padding: 3px; border: none; border-radius: 10px; background: var(--surface2); cursor: pointer; flex-shrink: 0; }
-.inline-add .iadd-btn { padding: 9px 16px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; flex-shrink: 0; }
+.inline-add { display: flex; flex-direction: column; gap: 8px; padding: 10px 16px 14px; }
+.inline-add-row { display: flex; gap: 8px; }
+.inline-add input[type=text] { flex: 1; padding: 11px 12px; background: var(--surface2); border: none; border-radius: var(--radius-sm); font-size: 16px; font-family: inherit; color: var(--text); outline: none; -webkit-appearance: none; min-width: 0; }
+.inline-add input[type=color] { width: 44px; height: 44px; padding: 3px; border: none; border-radius: 10px; background: var(--surface2); cursor: pointer; flex-shrink: 0; }
+.inline-add .iadd-btn { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; }
 
 .bl-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid var(--sep); }
 .bl-row:last-child { border-bottom: none; }
@@ -453,8 +454,10 @@ input, select, textarea { font-size: 16px; }
         <div class="group-card">
           <div id="cat-tags" class="tag-wrap"></div>
           <div class="inline-add">
-            <input type="color" id="new-cat-color" value="#007aff">
-            <input type="text" id="new-cat-name" placeholder="Neue Kategorie">
+            <div class="inline-add-row">
+              <input type="color" id="new-cat-color" value="#007aff">
+              <input type="text" id="new-cat-name" placeholder="Neue Kategorie">
+            </div>
             <button class="iadd-btn" onclick="addCat()">+ Hinzufügen</button>
           </div>
         </div>
@@ -465,7 +468,9 @@ input, select, textarea { font-size: 16px; }
         <div class="group-card">
           <div id="person-tags" class="tag-wrap"></div>
           <div class="inline-add">
-            <input type="text" id="new-person-name" placeholder="Neuer Name" style="flex:1">
+            <div class="inline-add-row">
+              <input type="text" id="new-person-name" placeholder="Neuer Name">
+            </div>
             <button class="iadd-btn" onclick="addPerson()">+ Hinzufügen</button>
           </div>
         </div>
