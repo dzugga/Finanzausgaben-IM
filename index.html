@@ -132,7 +132,7 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text); overflow: hidden;
 .field-row { display:flex; align-items:center; min-height:50px; padding:0 16px; gap:10px; border-bottom:0.5px solid var(--border); }
 .field-row:last-child { border-bottom:none; }
 .field-lbl { font-size:14px; font-weight:500; width:100px; flex-shrink:0; }
-.field-row input, .field-row select { flex:1; border:none; background:transparent; font-size:15px; font-family:'DM Sans',sans-serif; color:var(--text); text-align:right; padding:14px 0; outline:none; -webkit-appearance:none; min-width:0; }
+.field-row input, .field-row select { flex:1; border:none; background:transparent; font-size:16px; font-family:'DM Sans',sans-serif; color:var(--text); text-align:right; padding:14px 0; outline:none; -webkit-appearance:none; min-width:0; }
 .field-row input::placeholder { color:var(--text3); }
 .field-row select option { background:var(--surface); }
 .btn-primary { display:block; width:calc(100% - 32px); margin:0 16px; padding:15px; background:var(--text); color:var(--bg); border:none; border-radius:var(--radius); font-size:15px; font-weight:600; font-family:'DM Sans',sans-serif; cursor:pointer; transition:opacity .1s,transform .1s; -webkit-appearance:none; }
@@ -161,14 +161,14 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text); overflow: hidden;
 .tag-del { background:none; border:none; color:var(--text3); font-size:15px; cursor:pointer; padding:0 2px; line-height:1; }
 .tag-del:active { color:#d43a3a; }
 .add-row { display:flex; gap:8px; padding:6px 16px 14px; }
-.add-row input[type=text] { flex:1; padding:9px 12px; background:var(--surface2); border:0.5px solid var(--border2); border-radius:var(--radius-sm); font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); outline:none; -webkit-appearance:none; }
+.add-row input[type=text] { flex:1; padding:9px 12px; background:var(--surface2); border:0.5px solid var(--border2); border-radius:var(--radius-sm); font-size:16px; font-family:'DM Sans',sans-serif; color:var(--text); outline:none; -webkit-appearance:none; }
 .add-row input[type=color] { width:42px; height:42px; padding:2px; cursor:pointer; border-radius:var(--radius-sm); border:0.5px solid var(--border2); }
 .add-row .add-btn { padding:9px 14px; background:var(--text); color:var(--bg); border:none; border-radius:var(--radius-sm); font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; -webkit-appearance:none; flex-shrink:0; }
 .budget-limit-row { display:flex; align-items:center; gap:10px; padding:11px 16px; border-bottom:0.5px solid var(--border); }
 .budget-limit-row:last-child { border-bottom:none; }
 .bl-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 .bl-name { font-size:14px; font-weight:500; flex:1; }
-.bl-input { width:90px; padding:7px 10px; text-align:right; background:var(--surface2); border:0.5px solid var(--border2); border-radius:var(--radius-sm); font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); outline:none; -webkit-appearance:none; }
+.bl-input { width:90px; padding:7px 10px; text-align:right; background:var(--surface2); border:0.5px solid var(--border2); border-radius:var(--radius-sm); font-size:16px; font-family:'DM Sans',sans-serif; color:var(--text); outline:none; -webkit-appearance:none; }
 .bl-unit { font-size:12px; color:var(--text3); }
 .sec-header { padding:4px 16px 14px; }
 .sec-title { font-size:24px; font-weight:600; letter-spacing:-.4px; }
@@ -659,6 +659,68 @@ window.setBudget = async (id,val) => {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('/Finanzausgaben-IM/sw.js').catch(()=>{}); });
 }
+</script>
+
+<style>
+/* iOS keyboard fix - prevent layout shift */
+.content { will-change: scroll-position; }
+input:focus, select:focus { font-size: 16px !important; }
+</style>
+<script>
+(function() {
+  // Prevent iOS from scrolling/resizing when keyboard opens
+  // which causes the keyboard to immediately close
+  let lastScrollY = 0;
+
+  function onFocus(e) {
+    const el = e.target;
+    if (el.tagName !== 'INPUT' && el.tagName !== 'SELECT' && el.tagName !== 'TEXTAREA') return;
+    
+    lastScrollY = document.getElementById('content').scrollTop;
+    
+    // Freeze scroll position during keyboard animation
+    setTimeout(() => {
+      document.getElementById('content').scrollTop = lastScrollY;
+      // Scroll input into view gently
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 300);
+  }
+
+  function onBlur(e) {
+    const el = e.target;
+    if (el.tagName !== 'INPUT' && el.tagName !== 'SELECT' && el.tagName !== 'TEXTAREA') return;
+    // Restore scroll after keyboard closes
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.body.scrollTop = 0;
+    }, 100);
+  }
+
+  // iOS Safari: prevent touchmove from closing keyboard
+  document.addEventListener('touchmove', function(e) {
+    const focused = document.activeElement;
+    if (focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA')) {
+      // allow scroll in content area but don't blur
+      e.stopPropagation();
+    }
+  }, { passive: true });
+
+  document.addEventListener('focus', onFocus, true);
+  document.addEventListener('blur', onBlur, true);
+
+  // Key fix: font-size must be >= 16px on inputs to prevent iOS auto-zoom
+  // which triggers a layout recalculation and closes keyboard
+  document.addEventListener('DOMContentLoaded', () => {
+    function fixInputs() {
+      document.querySelectorAll('input, select, textarea').forEach(el => {
+        el.style.fontSize = '16px';
+      });
+    }
+    fixInputs();
+    // Re-apply when new inputs are added (settings page etc)
+    new MutationObserver(fixInputs).observe(document.body, { childList: true, subtree: true });
+  });
+})();
 </script>
 </body>
 </html>
