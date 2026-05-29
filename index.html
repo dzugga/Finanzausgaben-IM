@@ -238,7 +238,7 @@ body { font-family: 'DM Sans', sans-serif; color: var(--text); overflow: hidden;
         <div class="form-label">Ausgabe</div>
         <div class="field-card">
           <div class="field-row"><span class="field-lbl">Beschreibung</span><input type="text" id="f-desc" placeholder="z.B. Wocheneinkauf"></div>
-          <div class="field-row"><span class="field-lbl">Betrag (€)</span><input type="number" id="f-amount" placeholder="0.00" inputmode="decimal" step="0.01" min="0"></div>
+          <div class="field-row"><span class="field-lbl">Betrag (€)</span><input type="text" id="f-amount" placeholder="0.00" inputmode="decimal" pattern="[0-9]*[.,]?[0-9]*"></div>
           <div class="field-row"><span class="field-lbl">Datum</span><input type="date" id="f-date"></div>
         </div>
       </div>
@@ -505,7 +505,7 @@ window.initAddForm = initAddForm;
 
 window.saveEntry = async () => {
   const desc=document.getElementById('f-desc').value.trim();
-  const amount=parseFloat(document.getElementById('f-amount').value);
+  const amount=parseFloat(document.getElementById('f-amount').value.replace(',','.'));
   const date=document.getElementById('f-date').value;
   const cat=document.getElementById('f-cat').value;
   const person=document.getElementById('f-person').value;
@@ -617,7 +617,7 @@ window.setCP = p => { cPeriod=p; document.getElementById('cp-6').classList.toggl
 function renderSettings() {
   document.getElementById('cat-tags').innerHTML=settings.categories.map(c=>`<span class="tag"><span style="width:10px;height:10px;border-radius:50%;background:${c.color};display:inline-block"></span>&nbsp;${c.name}<button class="tag-del" onclick="delCat('${c.id}')">×</button></span>`).join('');
   document.getElementById('person-tags').innerHTML=settings.persons.map(p=>`<span class="tag">${p}<button class="tag-del" onclick="delPerson('${p}')">×</button></span>`).join('');
-  document.getElementById('budget-limit-list').innerHTML=settings.categories.map(cat=>`<div class="budget-limit-row"><div class="bl-dot" style="background:${cat.color}"></div><span class="bl-name">${cat.name}</span><input class="bl-input" type="number" value="${settings.budgets[cat.id]||''}" placeholder="–" min="0" step="10" oninput="setBudget('${cat.id}',this.value)"><span class="bl-unit">€/Monat</span></div>`).join('');
+  document.getElementById('budget-limit-list').innerHTML=settings.categories.map(cat=>`<div class="budget-limit-row"><div class="bl-dot" style="background:${cat.color}"></div><span class="bl-name">${cat.name}</span><input class="bl-input" type="text" inputmode="decimal" value="${settings.budgets[cat.id]||''}" placeholder="–" oninput="setBudget('${cat.id}',this.value)"><span class="bl-unit">€/Monat</span></div>`).join('');
 }
 window.renderSettings = renderSettings;
 
