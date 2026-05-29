@@ -1215,37 +1215,40 @@ async function deleteFromEdit() {
   }
 }
 
-// Hook numpad into edit-amount field
-const _origOpenPadFor = window.openPadFor;
+// Unified pad context handler for edit-amount
+// We extend the existing padContext system — 'edit-amount' is just another context type
+const _origOpenPadFor2 = window.openPadFor;
 window.openPadFor = function(type, id, name) {
   if (type === 'edit-amount') {
-    window._padContext_override = {type:'edit-amount'};
+    padContext = {type: 'edit-amount'};
     const cur = document.getElementById('edit-amount-hidden').value;
-    window.padVal = cur ? cur.replace('.', ',') : '';
-    document.getElementById('pad-title').textContent = 'Betrag eingeben';
-    window.updatePadDisplay();
+    padVal = cur ? parseFloat(cur).toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}).replace(/\./g,'').replace(',',',') : '';
+    // Clean value: just digits and comma
+    padVal = cur ? (parseFloat(cur) > 0 ? parseFloat(cur).toString().replace('.', ',') : '') : '';
+    document.getElementById('pad-title').textContent = 'Betrag bearbeiten';
+    updatePadDisplay();
     document.getElementById('numpad-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
     return;
   }
-  if (_origOpenPadFor) _origOpenPadFor(type, id, name);
+  if (_origOpenPadFor2) _origOpenPadFor2(type, id, name);
 };
 
-// Hook confirmPad for edit-amount
-const _origConfirmPad = window.confirmPad;
+// Extend confirmPad to handle edit-amount context
+const _origConfirmPad2 = window.confirmPad;
 window.confirmPad = async function() {
-  if (window._padContext_override && window._padContext_override.type === 'edit-amount') {
-    const num = parseFloat(window.padVal.replace(',','.')) || 0;
+  if (padContext && padContext.type === 'edit-amount') {
+    const num = parseFloat(padVal.replace(',', '.')) || 0;
     document.getElementById('edit-amount-hidden').value = num.toString();
-    const display = num > 0 ? num.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}) : '0,00';
+    const display = num > 0 ? num.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0,00';
     document.getElementById('edit-amt-display').textContent = display;
     document.getElementById('edit-amt-display').style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
-    window._padContext_override = null;
+    padContext = null;
     document.getElementById('numpad-overlay').style.display = 'none';
     document.body.style.overflow = '';
     return;
   }
-  window._padContext_override = null;
-  if (_origConfirmPad) await _origConfirmPad();
+  if (_origConfirmPad2) await _origConfirmPad2();
 };
 </script>
 
