@@ -1218,6 +1218,15 @@ function selectAllPrompt() {
   ta.focus();
   ta.select();
   try { ta.setSelectionRange(0, 99999); } catch(e) {}
+  // Also copy to clipboard
+  try {
+    navigator.clipboard.writeText(ta.value).then(function(){
+      var btn = document.querySelector('[onclick="selectAllPrompt()"]');
+      if(btn){ var orig=btn.textContent; btn.textContent='✓ Kopiert!'; setTimeout(function(){btn.textContent=orig;},2000); }
+    }).catch(function(){ document.execCommand('copy'); });
+  } catch(e2) {
+    try { document.execCommand('copy'); } catch(e3) {}
+  }
 }
 window.selectAllPrompt = selectAllPrompt;
 
@@ -1446,6 +1455,15 @@ function selectAllPrompt() {
   ta.focus();
   ta.select();
   try { ta.setSelectionRange(0, 99999); } catch(e) {}
+  // Also copy to clipboard
+  try {
+    navigator.clipboard.writeText(ta.value).then(function(){
+      var btn = document.querySelector('[onclick="selectAllPrompt()"]');
+      if(btn){ var orig=btn.textContent; btn.textContent='✓ Kopiert!'; setTimeout(function(){btn.textContent=orig;},2000); }
+    }).catch(function(){ document.execCommand('copy'); });
+  } catch(e2) {
+    try { document.execCommand('copy'); } catch(e3) {}
+  }
 }
 window.selectAllPrompt = selectAllPrompt;
 
