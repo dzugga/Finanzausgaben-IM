@@ -599,7 +599,7 @@ let settings = {
 };
 
 let bPeriod='m', cPeriod=6, activeMonth='';
-let pieInst, barInst, perInst;
+let pieInst, barInst, perInst, weekInst, lineInst;
 
 // ---- THEME ----
 function applyTheme(dark) {
@@ -1002,7 +1002,7 @@ function renderCharts() {
 }
 window.renderCharts=renderCharts;
 window.setCP=p=>{cPeriod=p;document.getElementById('cp-6').classList.toggle('active',p===6);document.getElementById('cp-12').classList.toggle('active',p===12);renderCharts();};
-let weekInst, lineInst;document.getElementById('cp-6').classList.toggle('active',p===6);document.getElementById('cp-12').classList.toggle('active',p===12);renderCharts();};
+window.setCP=p=>{cPeriod=p;document.getElementById('cp-6').classList.toggle('active',p===6);document.getElementById('cp-12').classList.toggle('active',p===12);renderCharts();};
 
 // ---- SETTINGS ----
 function renderSettings() {
