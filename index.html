@@ -869,17 +869,25 @@ window.delEntry = async id => {
 // ---- CHARTS ----
 function renderCharts() {
   const now = new Date();
-  const months = [];
-  for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push(d.toISOString().slice(0,7));}
+  // Build month list: always include current month + months from actual entries
+  const currentMonth = now.toISOString().slice(0,7);
+  const entryMonths = [...new Set(entries.map(e=>e.date.slice(0,7)))].sort().reverse();
+  // Merge: current month first, then entry months, then fill up to 12 total
+  const monthSet = new Set([currentMonth, ...entryMonths]);
+  const allMonths = [];
+  for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);allMonths.push(d.toISOString().slice(0,7));}
+  allMonths.forEach(m=>monthSet.add(m));
+  const months = [...monthSet].sort().reverse().slice(0,12);
 
   const pieSel = document.getElementById('pie-m');
   const topSel = document.getElementById('top-m');
   const lineSel = document.getElementById('line-m');
   const validM = new Set(months);
-  const curPie = validM.has(pieSel.value) ? pieSel.value : months[0];
-  const curTop = validM.has(topSel.value) ? topSel.value : months[0];
-  const curLine = validM.has(lineSel.value) ? lineSel.value : months[0];
-  const mkOpts = (cur) => months.map(m=>`<option value="${m}"${m===cur?' selected':''}>${new Date(m+'-01').toLocaleDateString('de-DE',{month:'long',year:'numeric'})}</option>`).join('');
+  // Always default to current month (not whatever was cached)
+  const curPie = (validM.has(pieSel.value) && pieSel.value === currentMonth) ? pieSel.value : currentMonth;
+  const curTop = (validM.has(topSel.value) && topSel.value === currentMonth) ? topSel.value : currentMonth;
+  const curLine = (validM.has(lineSel.value) && lineSel.value === currentMonth) ? lineSel.value : currentMonth;
+  const mkOpts = (cur) => months.map(m=>`<option value="${m}"${m===cur?' selected':''}>${new Date(m+'-02').toLocaleDateString('de-DE',{month:'long',year:'numeric'})}</option>`).join('');
   pieSel.innerHTML = mkOpts(curPie);
   topSel.innerHTML = mkOpts(curTop);
   lineSel.innerHTML = mkOpts(curLine);
@@ -889,11 +897,11 @@ function renderCharts() {
   const pColors = ['#007aff','#34c759','#ff9500','#af52de','#ff3b30','#ff2d55','#8e8e93'];
 
   // ---- KPIs ----
-  const mE = entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();});
+  const mE = entries.filter(e=>e.date.startsWith(currentMonth));
   const mTotal = mE.reduce((s,e)=>s+e.amount,0);
-  const pm = now.getMonth()===0?11:now.getMonth()-1;
-  const py = now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
-  const pmE = entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===pm&&d.getFullYear()===py;});
+  const prevMonthDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  const prevMonth = prevMonthDate.toISOString().slice(0,7);
+  const pmE = entries.filter(e=>e.date.startsWith(prevMonth));
   const pmTotal = pmE.reduce((s,e)=>s+e.amount,0);
   const trend = pmTotal>0?((mTotal-pmTotal)/pmTotal*100):0;
   const avgEntry = entries.length>0?entries.reduce((s,e)=>s+e.amount,0)/entries.length:0;
@@ -928,7 +936,7 @@ function renderCharts() {
   // ---- MONATSVERLAUF ----
   const bMs=[];
   for(let i=cPeriod-1;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);bMs.push(d.toISOString().slice(0,7));}
-  const bL=bMs.map(m=>new Date(m+'-01').toLocaleDateString('de-DE',{month:'short',year:'2-digit'}));
+  const bL=bMs.map(m=>new Date(m+'-02').toLocaleDateString('de-DE',{month:'short',year:'2-digit'}));
   const topCats=settings.categories.slice(0,5);
   const bDs=topCats.map(cat=>({label:cat.name,data:bMs.map(m=>entries.filter(e=>e.date.startsWith(m)&&e.category===cat.id).reduce((s,e)=>s+e.amount,0)),backgroundColor:cat.color+'99',borderWidth:0,borderRadius:2}));
   const barLeg = document.getElementById('bar-leg');
