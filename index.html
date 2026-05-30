@@ -312,6 +312,10 @@ body {
 .cseg.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 
 input, select, textarea { font-size: 16px; }
+.range-btn { flex:1; padding:10px 4px; border:none; background:none; font-family:inherit; font-size:13px; font-weight:500; color:var(--text2); cursor:pointer; transition:all .15s; }
+.range-btn.active { color:var(--accent); font-weight:700; background:rgba(0,122,255,.08); }
+.top5-row { cursor:pointer; transition:opacity .1s; }
+.top5-row:active { opacity:.7; }
 .top5-row { cursor:pointer; transition:opacity .1s; }
 .top5-row:active { opacity:.7; }
 </style>
@@ -401,60 +405,66 @@ input, select, textarea { font-size: 16px; }
 
     <!-- AUSWERTUNG -->
     <div id="sec-charts" class="section">
-      <div class="page-hdr"><h1>Auswertung</h1></div>
+      <div class="page-hdr" style="padding-bottom:0"><h1>Auswertung</h1></div>
+
+      <!-- DATE RANGE FILTER -->
+      <div style="margin:12px 16px 16px;background:var(--surface);border-radius:var(--radius);overflow:hidden">
+        <div style="display:flex;border-bottom:0.5px solid var(--sep)">
+          <button class="range-btn active" id="rb-m" onclick="setRange('m')">Monat</button>
+          <button class="range-btn" id="rb-3m" onclick="setRange('3m')">3 Monate</button>
+          <button class="range-btn" id="rb-6m" onclick="setRange('6m')">6 Monate</button>
+          <button class="range-btn" id="rb-y" onclick="setRange('y')">Jahr</button>
+          <button class="range-btn" id="rb-all" onclick="setRange('all')">Alles</button>
+        </div>
+        <div id="range-detail" style="padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+          <button onclick="shiftRange(-1)" style="background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0 4px;font-family:inherit" id="range-prev">‹</button>
+          <span id="range-label" style="font-size:14px;font-weight:600;color:var(--text)">Mai 2026</span>
+          <button onclick="shiftRange(1)" style="background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0 4px;font-family:inherit" id="range-next">›</button>
+        </div>
+      </div>
 
       <!-- KPI ROW -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 16px 20px" id="chart-kpis"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 16px 16px" id="chart-kpis"></div>
 
       <!-- TREND ALERT -->
       <div id="trend-alert" style="margin:0 16px 16px;display:none"></div>
 
       <!-- MONATSVERLAUF -->
-      <div class="chart-card">
+      <div class="chart-card" id="bar-card">
         <div class="chart-hdr">
-          <span class="chart-hdr-title">Monatsverlauf</span>
-          <div class="card-seg">
-            <button class="cseg active" id="cp-6" onclick="setCP(6)">6M</button>
-            <button class="cseg" id="cp-12" onclick="setCP(12)">12M</button>
-          </div>
+          <span class="chart-hdr-title">Verlauf</span>
         </div>
         <div class="chart-body">
           <div id="bar-leg" class="chart-legend"></div>
-          <div style="position:relative;height:210px"><canvas id="barChart" role="img" aria-label="Monatsverlauf">Monate</canvas></div>
+          <div style="position:relative;height:210px"><canvas id="barChart" role="img" aria-label="Verlauf">Verlauf</canvas></div>
         </div>
       </div>
 
       <!-- KATEGORIEN DONUT -->
       <div class="chart-card">
-        <div class="chart-hdr">
-          <span class="chart-hdr-title">Kategorien</span>
-          <select id="pie-m" onchange="renderCharts()" style="font-size:13px;background:var(--surface2);border:none;border-radius:99px;padding:4px 10px;color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
-        </div>
+        <div class="chart-hdr"><span class="chart-hdr-title">Kategorien</span></div>
         <div class="chart-body">
           <div id="pie-leg" class="chart-legend"></div>
           <div style="position:relative;height:220px"><canvas id="pieChart" role="img" aria-label="Kategorien">Kategorien</canvas></div>
         </div>
       </div>
 
-      <!-- WOCHENTAG ANALYSE -->
+      <!-- WOCHENTAG -->
       <div class="chart-card">
         <div class="chart-hdr"><span class="chart-hdr-title">Ausgaben nach Wochentag</span></div>
         <div class="chart-body">
-          <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Durchschnitt pro Tag (alle Einträge)</div>
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Durchschnitt pro Tag im gewählten Zeitraum</div>
           <div style="position:relative;height:180px"><canvas id="weekChart" role="img" aria-label="Wochentage">Wochentage</canvas></div>
         </div>
       </div>
 
-      <!-- TOP AUSGABEN -->
+      <!-- TOP 5 -->
       <div class="chart-card">
-        <div class="chart-hdr">
-          <span class="chart-hdr-title">Top 5 Ausgaben</span>
-          <select id="top-m" onchange="renderCharts()" style="font-size:13px;background:var(--surface2);border:none;border-radius:99px;padding:4px 10px;color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
-        </div>
+        <div class="chart-hdr"><span class="chart-hdr-title">Top 5 Ausgaben</span></div>
         <div class="chart-body" id="top5-list" style="padding-top:4px"></div>
       </div>
 
-      <!-- PERSON VERGLEICH -->
+      <!-- PERSON -->
       <div class="chart-card">
         <div class="chart-hdr"><span class="chart-hdr-title">Vergleich Personen</span></div>
         <div class="chart-body">
@@ -463,12 +473,9 @@ input, select, textarea { font-size: 16px; }
         </div>
       </div>
 
-      <!-- TAGESAUSGABEN VERLAUF -->
-      <div class="chart-card">
-        <div class="chart-hdr">
-          <span class="chart-hdr-title">Tägliche Ausgaben</span>
-          <select id="line-m" onchange="renderCharts()" style="font-size:13px;background:var(--surface2);border:none;border-radius:99px;padding:4px 10px;color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
-        </div>
+      <!-- TAGESLINIE (nur bei Monatsansicht) -->
+      <div class="chart-card" id="line-card">
+        <div class="chart-hdr"><span class="chart-hdr-title">Tägliche Ausgaben</span></div>
         <div class="chart-body">
           <div style="position:relative;height:180px"><canvas id="lineChart" role="img" aria-label="Tagesverlauf">Tage</canvas></div>
         </div>
@@ -476,501 +483,188 @@ input, select, textarea { font-size: 16px; }
 
     </div>
 
-    <!-- EINSTELLUNGEN -->
-    <div id="sec-settings" class="section">
-      <div class="page-hdr"><h1>Einstellungen</h1></div>
+// ---- RANGE STATE ----
+let chartRange = 'm';       // 'm','3m','6m','y','all'
+let chartRangeOffset = 0;  // months back from today (for m/3m/6m)
+let chartYearOffset = 0;   // years back (for y)
 
-      <div class="group">
-        <div class="group-label">Darstellung & Benachrichtigungen</div>
-        <div class="group-card">
-          <div class="toggle-row">
-            <span class="toggle-label">Dark Mode</span>
-            <label class="toggle">
-              <input type="checkbox" id="dark-toggle" onchange="toggleTheme()">
-              <div class="toggle-track"></div>
-              <div class="toggle-thumb"></div>
-            </label>
-          </div>
-          <div class="toggle-row" style="border-top:0.5px solid var(--sep)">
-            <div>
-              <div class="toggle-label">Tägliche Erinnerung</div>
-              <div style="font-size:12px;color:var(--text2);margin-top:2px" id="notif-sub">Erinnert täglich ans Eintragen</div>
-            </div>
-            <label class="toggle">
-              <input type="checkbox" id="notif-toggle" onchange="toggleNotifications(this.checked)">
-              <div class="toggle-track"></div>
-              <div class="toggle-thumb"></div>
-            </label>
-          </div>
-          <div id="notif-time-row" style="display:none;padding:12px 16px;border-top:0.5px solid var(--sep);align-items:center;justify-content:space-between">
-            <span style="font-size:17px">Uhrzeit</span>
-            <input type="time" id="notif-time" value="20:00" onchange="updateNotifTime(this.value)"
-              style="font-size:17px;border:none;background:transparent;color:var(--accent);font-family:inherit;outline:none;text-align:right;-webkit-appearance:none;">
-          </div>
-        </div>
-      </div>
-
-      <div class="group">
-        <div class="group-label">Kategorien</div>
-        <div class="group-card">
-          <div id="cat-tags" class="tag-wrap"></div>
-          <div class="inline-add">
-            <div class="inline-add-row">
-              <input type="color" id="new-cat-color" value="#007aff">
-              <input type="text" id="new-cat-name" placeholder="Neue Kategorie">
-            </div>
-            <button class="iadd-btn" onclick="addCat()">+ Hinzufügen</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="group">
-        <div class="group-label">Personen</div>
-        <div class="group-card">
-          <div id="person-tags" class="tag-wrap"></div>
-          <div class="inline-add">
-            <div class="inline-add-row">
-              <input type="text" id="new-person-name" placeholder="Neuer Name">
-            </div>
-            <button class="iadd-btn" onclick="addPerson()">+ Hinzufügen</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="group">
-        <div class="group-label">Budget-Limits (monatlich)</div>
-        <div class="group-card" id="budget-inputs"></div>
-      </div>
-
-      <div class="version-tag">Ausgaben App v2.1.5590 · Firebase Sync</div>
-      <div style="padding:0 16px 4px;text-align:center">
-        <button onclick="hardReload()" style="background:none;border:none;font-size:12px;color:var(--text3);font-family:inherit;cursor:pointer;text-decoration:underline;">Seite komplett neu laden</button>
-      </div>
-      <div style="padding:0 16px 8px">
-        <button onclick="checkForUpdate()" id="update-btn" style="width:100%;padding:14px;background:var(--surface);border:0.5px solid var(--sep);border-radius:var(--radius);font-size:15px;font-weight:600;font-family:inherit;color:var(--accent);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-          <i class="ti ti-refresh" id="update-icon"></i>
-          <span id="update-label">Auf Updates prüfen</span>
-        </button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- TAB BAR -->
-  <div class="tabbar">
-    <button class="tab active" onclick="goTab('overview','Übersicht',this)"><i class="ti ti-layout-dashboard"></i><span>Übersicht</span></button>
-    <button class="tab" onclick="goTab('add','Ausgabe',this)"><i class="ti ti-receipt"></i><span>Ausgabe</span></button>
-    <button class="tab" onclick="goTab('entries','Einträge',this)"><i class="ti ti-list"></i><span>Einträge</span></button>
-    <button class="tab" onclick="goTab('charts','Auswertung',this)"><i class="ti ti-chart-pie-2"></i><span>Charts</span></button>
-    <button class="tab" onclick="goTab('settings','Einstellungen',this)"><i class="ti ti-settings"></i><span>Mehr</span></button>
-  </div>
-</div>
-
-<!-- FIREBASE -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, addDoc, deleteDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA0QVbhq1DzRpqPfnFPSX36lr7T6a0I6pA",
-  authDomain: "finanzausgaben-im.firebaseapp.com",
-  projectId: "finanzausgaben-im",
-  storageBucket: "finanzausgaben-im.firebasestorage.app",
-  messagingSenderId: "485416083615",
-  appId: "1:485416083615:web:89969f4b1d0dd53fff02aa"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-let entries = [];
-let settings = {
-  categories: [
-    {id:'lebens',    name:'Lebensmittel', color:'#34c759'},
-    {id:'wohnen',    name:'Wohnen',       color:'#007aff'},
-    {id:'transport', name:'Transport',    color:'#ff9500'},
-    {id:'gesundheit',name:'Gesundheit',   color:'#ff3b30'},
-    {id:'freizeit',  name:'Freizeit',     color:'#af52de'},
-    {id:'kleidung',  name:'Kleidung',     color:'#ff2d55'},
-    {id:'sonstiges', name:'Sonstiges',    color:'#8e8e93'},
-  ],
-  persons: ['Ich', 'Partner/in'],
-  budgets: {lebens:400, wohnen:1200, transport:150}
-};
-
-let bPeriod='m', cPeriod=6, activeMonth='';
-let pieInst, barInst, perInst, weekInst, lineInst;
-
-// ---- THEME ----
-function applyTheme(dark) {
-  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-  const btn = document.getElementById('theme-btn');
-  if (btn) btn.innerHTML = dark ? '<i class="ti ti-sun"></i>' : '<i class="ti ti-moon"></i>';
-  const toggle = document.getElementById('dark-toggle');
-  if (toggle) toggle.checked = dark;
-  try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch(e){}
-}
-window.toggleTheme = () => {
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-  applyTheme(!isDark);
-};
-
-// Load saved theme
-const savedTheme = (() => { try { return localStorage.getItem('theme'); } catch(e){ return null; } })();
-if (savedTheme) applyTheme(savedTheme === 'dark');
-else if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(true);
-
-// ---- SYNC PILL ----
-window.setSyncStatus = function(state, text) { setSyncStatus(state, text); };
-function setSyncStatus(state, text) {
-  const pill = document.getElementById('sync-pill');
-  const txt = document.getElementById('sync-txt');
-  if (!pill) return;
-  pill.className = 'sync-pill ' + state;
-  txt.textContent = text;
-  if (state === 'ok') setTimeout(() => pill.classList.add('hidden'), 2500);
-}
-
-// ---- FIRESTORE ----
-onSnapshot(collection(db,'entries'), snap => {
-  entries = snap.docs.map(d => ({id:d.id,...d.data()}));
-  window._entries = entries;
-  refreshActiveSection();
-  setSyncStatus('ok','Synchronisiert');
-}, () => setSyncStatus('err','Verbindungsfehler'));
-
-onSnapshot(doc(db,'config','settings'), snap => {
-  if (snap.exists()) {
-    const d = snap.data();
-    if (d.categories) settings.categories = d.categories;
-    if (d.persons) settings.persons = d.persons;
-    if (d.budgets) settings.budgets = d.budgets;
-  }
-  refreshActiveSection();
-  initAddForm();
-}, () => {});
-
-setTimeout(() => {
-  document.getElementById('loader').classList.add('gone');
-  document.getElementById('app').style.display = 'flex';
-  window._settings = settings;
-  renderOverview();
-  initAddForm();
-}, 1400);
-
-function refreshActiveSection() {
-  const active = document.querySelector('.section.active');
-  if (!active) return;
-  const id = active.id;
-  if (id==='sec-overview') renderOverview();
-  else if (id==='sec-entries') renderEntries();
-  else if (id==='sec-charts') renderCharts();
-  else if (id==='sec-settings') renderSettings();
-}
-
-async function saveSettings() {
-  window._settings = settings;
-  setSyncStatus('syncing','Speichern…');
-  try {
-    await setDoc(doc(db,'config','settings'), settings);
-    setSyncStatus('ok','Gespeichert');
-  } catch(e) { setSyncStatus('err','Fehler'); }
-}
-
-// ---- HELPERS ----
-const fmtEur = n => n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+'\u00a0€';
-const fmtS = n => n>=1000?(n/1000).toFixed(1).replace('.',',')+'\u00a0k€':fmtEur(n);
-const getCat = id => settings.categories.find(c=>c.id===id)||{name:id,color:'#8e8e93'};
-window.fmtEur = fmtEur; window.fmtS = fmtS; window.getCat = getCat;
-
-// ---- NAV ----
-window.goTab = (name, title, btn) => {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('sec-'+name).classList.add('active');
-  btn.classList.add('active');
-  document.getElementById('nav-title').textContent = title;
-  document.getElementById('content').scrollTop = 0;
-  if (name==='overview') renderOverview();
-  else if (name==='add') initAddForm();
-  else if (name==='entries') renderEntries();
-  else if (name==='charts') renderCharts();
-  else if (name==='settings') renderSettings();
-};
-
-// ---- OVERVIEW ----
-function renderOverview() {
-  const now=new Date(), m=now.getMonth(), y=now.getFullYear();
-  const mE=entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===m&&d.getFullYear()===y;});
-  const yE=entries.filter(e=>new Date(e.date).getFullYear()===y);
-  const mT=mE.reduce((s,e)=>s+e.amount,0);
-  const yT=yE.reduce((s,e)=>s+e.amount,0);
-  const pm=m===0?11:m-1, py=m===0?y-1:y;
-  const pT=entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===pm&&d.getFullYear()===py;}).reduce((s,e)=>s+e.amount,0);
-  const diff=pT>0?((mT-pT)/pT*100).toFixed(0):null;
-  const avg=mE.length?mT/now.getDate():0;
-  document.getElementById('metrics').innerHTML=`
-    <div class="metric-card accent-card">
-      <div class="label">Dieser Monat</div>
-      <div class="value">${fmtS(mT)}</div>
-      ${diff!==null?`<div class="sub">${diff>0?'▲':'▼'} ${Math.abs(diff)}% Vormonat</div>`:`<div class="sub">${mE.length} Einträge</div>`}
-    </div>
-    <div class="metric-card">
-      <div class="label">Dieses Jahr</div>
-      <div class="value">${fmtS(yT)}</div>
-      <div class="sub">${yE.length} Einträge</div>
-    </div>
-    <div class="metric-card">
-      <div class="label">∅ pro Tag</div>
-      <div class="value">${fmtS(avg)}</div>
-    </div>
-    <div class="metric-card">
-      <div class="label">Gesamt</div>
-      <div class="value">${entries.length}</div>
-      <div class="sub">alle Einträge</div>
-    </div>`;
-  renderBudgetBars(mE,yE);
-  const recent=[...entries].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
-  document.getElementById('recent-list').innerHTML=recent.length
-    ?recent.map(e=>rowHTML(e,false)).join('')
-    :'<div class="empty"><i class="ti ti-receipt-off"></i><p>Noch keine Einträge</p></div>';
-  renderWarnings(mE);
-}
-window.renderOverview=renderOverview;
-
-window.setBP = p => {
-  bPeriod=p;
-  document.getElementById('bp-m').classList.toggle('active',p==='m');
-  document.getElementById('bp-j').classList.toggle('active',p==='j');
-  const now=new Date(),m=now.getMonth(),y=now.getFullYear();
-  renderBudgetBars(
-    entries.filter(e=>{const d=new Date(e.date);return d.getMonth()===m&&d.getFullYear()===y;}),
-    entries.filter(e=>new Date(e.date).getFullYear()===y)
-  );
-};
-
-function renderBudgetBars(mE,yE) {
-  const cats=settings.categories.filter(c=>settings.budgets[c.id]);
-  if (!cats.length){document.getElementById('budget-bars').innerHTML='<div class="row"><span class="row-right" style="flex:1;text-align:center;color:var(--text2);font-size:14px">Noch keine Limits → Einstellungen</span></div>';return;}
-  const es=bPeriod==='m'?mE:yE, f=bPeriod==='j'?12:1;
-  document.getElementById('budget-bars').innerHTML=cats.map(cat=>{
-    const spent=es.filter(e=>e.category===cat.id).reduce((s,e)=>s+e.amount,0);
-    const budget=(settings.budgets[cat.id]||0)*f;
-    const pct=budget>0?Math.min(100,spent/budget*100):0;
-    const col=pct>=100?'var(--red)':pct>=80?'var(--orange)':cat.color;
-    return `<div class="budget-row-item" onclick="openCatDetail('${cat.id}')" style="cursor:pointer">
-      <div class="budget-top">
-        <span class="bname">${cat.name}</span>
-        <div style="display:flex;align-items:center;gap:6px">
-          <span class="bnums">${fmtEur(spent)} / ${fmtEur(budget)}</span>
-          <i class="ti ti-chevron-right" style="font-size:13px;color:var(--text3)"></i>
-        </div>
-      </div>
-      <div class="btrack"><div class="bfill" style="width:${pct}%;background:${col}"></div></div>
-    </div>`;
-  }).join('');
-}
-
-function renderWarnings(mE) {
-  let h='';
-  for (const cat of settings.categories) {
-    if (!settings.budgets[cat.id]) continue;
-    const spent=mE.filter(e=>e.category===cat.id).reduce((s,e)=>s+e.amount,0);
-    const pct=spent/settings.budgets[cat.id]*100;
-    if (pct>=100) h+=`<div class="warn red"><i class="ti ti-alert-triangle"></i><span><strong>${cat.name}</strong>: Budget überschritten (${fmtEur(spent)})</span></div>`;
-    else if (pct>=80) h+=`<div class="warn orange"><i class="ti ti-alert-circle"></i><span><strong>${cat.name}</strong>: 80 % des Budgets erreicht</span></div>`;
-  }
-  document.getElementById('warn-zone').innerHTML=h;
-}
-
-// ---- ADD ----
-function initAddForm() {
-  document.getElementById('f-cat').innerHTML=settings.categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  document.getElementById('f-person').innerHTML=settings.persons.map(p=>`<option value="${p}">${p}</option>`).join('');
-  if (!document.getElementById('f-date').value)
-    document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
-}
-window.initAddForm=initAddForm;
-
-window.saveEntry = async () => {
-  const desc=document.getElementById('f-desc').value.trim();
-  const rawAmt=document.getElementById('f-amount').value.replace(',','.');
-  const amount=parseFloat(rawAmt);
-  const date=document.getElementById('f-date').value;
-  const cat=document.getElementById('f-cat').value;
-  const person=document.getElementById('f-person').value;
-  const note=document.getElementById('f-note').value.trim();
-  if (!desc||!amount||isNaN(amount)||!date){alert('Bitte Betrag und Beschreibung angeben.');return;}
-  setSyncStatus('syncing','Speichern…');
-  try {
-    await addDoc(collection(db,'entries'),{desc,amount,date,category:cat,person,note,createdAt:Date.now()});
-    document.getElementById('f-amount').value='';
-    document.getElementById('f-desc').value='';
-    document.getElementById('f-note').value='';
-    // Reset amount display to 0,00
-    padVal = '';
-    document.getElementById('amt-display').textContent = '0,00';
-    document.getElementById('amt-display').style.color = 'var(--text3)';
-    goTab('overview','Übersicht',document.querySelector('.tab'));
-    setSyncStatus('ok','Gespeichert ✓');
-  } catch(e){setSyncStatus('err','Fehler');}
-};
-
-// ---- ENTRY ROW ----
-function rowHTML(e,showDel) {
-  const cat=getCat(e.category);
-  return `<div class="row" ${showDel?`onclick="openEdit('${e.id}')" style="cursor:pointer"`:''}  >
-    <div class="row-icon" style="background:${cat.color}20"><i class="ti ti-tag" style="color:${cat.color}"></i></div>
-    <div class="row-body">
-      <div class="row-title">${e.desc}</div>
-      <div class="row-sub">${cat.name} · ${e.person} · ${new Date(e.date).toLocaleDateString('de-DE')}${e.note?' · '+e.note:''}</div>
-    </div>
-    <span class="row-right bold">${fmtEur(e.amount)}</span>
-    ${showDel?`<i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px;margin-left:4px"></i>`:''}
-  </div>`;
-}
-
-// ---- ENTRIES ----
-function renderEntries() {
-  const months=[...new Set(entries.map(e=>e.date.slice(0,7)))].sort().reverse();
-  if (!activeMonth&&months.length) activeMonth=months[0];
-  document.getElementById('month-chips').innerHTML=
-    `<button class="chip${activeMonth===''?' active':''}" onclick="setMonth('')">Alle</button>`+
-    months.map(m=>`<button class="chip${m===activeMonth?' active':''}" onclick="setMonth('${m}')">${new Date(m+'-01').toLocaleDateString('de-DE',{month:'short',year:'2-digit'})}</button>`).join('');
-  document.getElementById('f-cat-f').innerHTML='<option value="">Alle Kategorien</option>'+settings.categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  document.getElementById('f-per-f').innerHTML='<option value="">Alle Personen</option>'+settings.persons.map(p=>`<option value="${p}">${p}</option>`).join('');
-  applyFilters();
-}
-window.renderEntries=renderEntries;
-
-window.applyFilters = () => {
-  const fc=document.getElementById('f-cat-f').value;
-  const fp=document.getElementById('f-per-f').value;
-  let es=[...entries].sort((a,b)=>b.date.localeCompare(a.date));
-  if (activeMonth) es=es.filter(e=>e.date.startsWith(activeMonth));
-  if (fc) es=es.filter(e=>e.category===fc);
-  if (fp) es=es.filter(e=>e.person===fp);
-  const total=es.reduce((s,e)=>s+e.amount,0);
-  const el=document.getElementById('entries-list');
-  el.innerHTML=es.length
-    ?`<div class="row"><span style="font-size:14px;color:var(--text2)">${es.length} Einträge</span><span class="row-right bold">${fmtEur(total)}</span></div>`+es.map(e=>rowHTML(e,true)).join('')
-    :'<div class="empty"><i class="ti ti-receipt-off"></i><p>Keine Einträge</p></div>';
-};
-
-window.setMonth = m => { activeMonth=m; renderEntries(); };
-
-window.delEntry = async id => {
-  if (!confirm('Eintrag löschen?')) return;
-  setSyncStatus('syncing','Löschen…');
-  try { await deleteDoc(doc(db,'entries',id)); setSyncStatus('ok','Gelöscht'); }
-  catch(e) { setSyncStatus('err','Fehler'); }
-};
-
-// ---- CHARTS ----
-function renderCharts() {
+function getRangeEntries() {
   const now = new Date();
-  // Build month list: always include current month + months from actual entries
-  const currentMonth = now.toISOString().slice(0,7);
-  const entryMonths = [...new Set(entries.map(e=>e.date.slice(0,7)))].sort().reverse();
-  // Merge: current month first, then entry months, then fill up to 12 total
-  const monthSet = new Set([currentMonth, ...entryMonths]);
-  const allMonths = [];
-  for(let i=0;i<12;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);allMonths.push(d.toISOString().slice(0,7));}
-  allMonths.forEach(m=>monthSet.add(m));
-  const months = [...monthSet].sort().reverse().slice(0,12);
+  let from, to, label, showBar = true, barUnit = 'month';
+  if (chartRange === 'm') {
+    const d = new Date(now.getFullYear(), now.getMonth() - chartRangeOffset, 1);
+    from = d.toISOString().slice(0,7) + '-01';
+    const last = new Date(d.getFullYear(), d.getMonth()+1, 0);
+    to = last.toISOString().slice(0,10);
+    label = d.toLocaleDateString('de-DE',{month:'long',year:'numeric'});
+    barUnit = 'day';
+  } else if (chartRange === '3m') {
+    const dEnd = new Date(now.getFullYear(), now.getMonth() - chartRangeOffset, 0);
+    const dStart = new Date(dEnd.getFullYear(), dEnd.getMonth() - 2, 1);
+    from = dStart.toISOString().slice(0,10);
+    to = new Date(dEnd.getFullYear(), dEnd.getMonth()+1, 0).toISOString().slice(0,10);
+    label = dStart.toLocaleDateString('de-DE',{month:'short'}) + ' – ' + dEnd.toLocaleDateString('de-DE',{month:'long',year:'numeric'});
+    barUnit = 'month';
+  } else if (chartRange === '6m') {
+    const dEnd = new Date(now.getFullYear(), now.getMonth() - chartRangeOffset, 0);
+    const dStart = new Date(dEnd.getFullYear(), dEnd.getMonth() - 5, 1);
+    from = dStart.toISOString().slice(0,10);
+    to = new Date(dEnd.getFullYear(), dEnd.getMonth()+1, 0).toISOString().slice(0,10);
+    label = dStart.toLocaleDateString('de-DE',{month:'short'}) + ' – ' + dEnd.toLocaleDateString('de-DE',{month:'long',year:'numeric'});
+    barUnit = 'month';
+  } else if (chartRange === 'y') {
+    const yr = now.getFullYear() - chartYearOffset;
+    from = yr + '-01-01'; to = yr + '-12-31';
+    label = 'Jahr ' + yr;
+    barUnit = 'month';
+  } else { // all
+    from = '2000-01-01'; to = '2099-12-31';
+    label = 'Alle Einträge';
+    showBar = false;
+  }
+  return { entries: entries.filter(e=>e.date>=from && e.date<=to), label, barUnit, from, to, showBar };
+}
 
-  const pieSel = document.getElementById('pie-m');
-  const topSel = document.getElementById('top-m');
-  const lineSel = document.getElementById('line-m');
-  const validM = new Set(months);
-  // Always default to current month (not whatever was cached)
-  const curPie = (validM.has(pieSel.value) && pieSel.value === currentMonth) ? pieSel.value : currentMonth;
-  const curTop = (validM.has(topSel.value) && topSel.value === currentMonth) ? topSel.value : currentMonth;
-  const curLine = (validM.has(lineSel.value) && lineSel.value === currentMonth) ? lineSel.value : currentMonth;
-  const mkOpts = (cur) => months.map(m=>`<option value="${m}"${m===cur?' selected':''}>${new Date(m+'-02').toLocaleDateString('de-DE',{month:'long',year:'numeric'})}</option>`).join('');
-  pieSel.innerHTML = mkOpts(curPie);
-  topSel.innerHTML = mkOpts(curTop);
-  lineSel.innerHTML = mkOpts(curLine);
+window.setRange = function(r) {
+  chartRange = r; chartRangeOffset = 0; chartYearOffset = 0;
+  ['m','3m','6m','y','all'].forEach(x=>document.getElementById('rb-'+x).classList.toggle('active',x===r));
+  const prevBtn = document.getElementById('range-prev');
+  const nextBtn = document.getElementById('range-next');
+  if(prevBtn) prevBtn.style.visibility = r==='all'?'hidden':'visible';
+  if(nextBtn) nextBtn.style.visibility = r==='all'?'hidden':'visible';
+  renderCharts();
+};
+
+window.shiftRange = function(dir) {
+  if(chartRange==='y') chartYearOffset -= dir;
+  else chartRangeOffset -= dir;
+  if(chartRangeOffset < 0) chartRangeOffset = 0;
+  if(chartYearOffset < 0) chartYearOffset = 0;
+  // Prevent going into future
+  const now = new Date();
+  const maxOffset = chartRange==='y' ? now.getFullYear()-2020 : 23;
+  if(chartRange==='y' && chartYearOffset > maxOffset) chartYearOffset = maxOffset;
+  if(chartRange!=='y' && chartRangeOffset > maxOffset) chartRangeOffset = maxOffset;
+  renderCharts();
+};
+
+function renderCharts() {
+  const { entries: fEntries, label, barUnit, from, to, showBar } = getRangeEntries();
+  const now = new Date();
+
+  // Update range label
+  const lbl = document.getElementById('range-label');
+  if(lbl) lbl.textContent = label;
+  // Hide/show next button based on offset
+  const nextBtn = document.getElementById('range-next');
+  if(nextBtn) nextBtn.style.opacity = chartRangeOffset===0&&chartYearOffset===0?'0.3':'1';
 
   const gridC = 'rgba(128,128,128,.1)';
   const tickC = 'rgba(128,128,128,.8)';
   const pColors = ['#007aff','#34c759','#ff9500','#af52de','#ff3b30','#ff2d55','#8e8e93'];
 
   // ---- KPIs ----
-  const mE = entries.filter(e=>e.date.startsWith(currentMonth));
-  const mTotal = mE.reduce((s,e)=>s+e.amount,0);
-  const prevMonthDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
-  const prevMonth = prevMonthDate.toISOString().slice(0,7);
-  const pmE = entries.filter(e=>e.date.startsWith(prevMonth));
-  const pmTotal = pmE.reduce((s,e)=>s+e.amount,0);
-  const trend = pmTotal>0?((mTotal-pmTotal)/pmTotal*100):0;
-  const avgEntry = entries.length>0?entries.reduce((s,e)=>s+e.amount,0)/entries.length:0;
-  const dailyAvg = now.getDate()>0?mTotal/now.getDate():0;
+  const total = fEntries.reduce((s,e)=>s+e.amount,0);
+  const count = fEntries.length;
+  const avgE = count>0?total/count:0;
+  // Compare to previous same period
+  let prevTotal = 0;
+  if(chartRange==='m') {
+    const d=new Date(now.getFullYear(),now.getMonth()-chartRangeOffset-1,1);
+    const pm=d.toISOString().slice(0,7);
+    prevTotal=entries.filter(e=>e.date.startsWith(pm)).reduce((s,e)=>s+e.amount,0);
+  }
+  const trend = prevTotal>0?((total-prevTotal)/prevTotal*100):0;
 
   const kpiEl = document.getElementById('chart-kpis');
   if(kpiEl) kpiEl.innerHTML = `
     <div style="background:var(--surface);border-radius:var(--radius);padding:12px;text-align:center">
-      <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em">Trend</div>
-      <div style="font-size:20px;font-weight:700;color:${trend>0?'var(--red)':'var(--green)'}">${trend>0?'▲':'▼'}${Math.abs(trend).toFixed(0)}%</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:2px">ggü. Vormonat</div>
+      <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em">Gesamt</div>
+      <div style="font-size:18px;font-weight:700">${fmtS(total)}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">${count} Einträge</div>
     </div>
     <div style="background:var(--surface);border-radius:var(--radius);padding:12px;text-align:center">
-      <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em">∅ Tag</div>
-      <div style="font-size:18px;font-weight:700">${fmtS(dailyAvg)}</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:2px">dieser Monat</div>
+      <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em">${chartRange==='m'?'∅ Tag':'∅ Monat'}</div>
+      <div style="font-size:18px;font-weight:700">${chartRange==='m'?fmtS(total/new Date(now.getFullYear(),now.getMonth()-chartRangeOffset+1,0).getDate()):fmtS(total/Math.max(1,fEntries.length>0?1:1))}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">im Zeitraum</div>
     </div>
     <div style="background:var(--surface);border-radius:var(--radius);padding:12px;text-align:center">
       <div style="font-size:10px;color:var(--text2);margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em">∅ Buchung</div>
-      <div style="font-size:18px;font-weight:700">${fmtS(avgEntry)}</div>
-      <div style="font-size:10px;color:var(--text3);margin-top:2px">alle Zeiten</div>
+      <div style="font-size:18px;font-weight:700">${fmtS(avgE)}</div>
+      <div style="font-size:10px;color:var(--text3);margin-top:2px">Durchschnitt</div>
     </div>`;
 
   // ---- TREND ALERT ----
   const alertEl = document.getElementById('trend-alert');
   if(alertEl) {
-    if(pmTotal>0&&trend>20){alertEl.style.display='block';alertEl.innerHTML=`<div class="warn red"><i class="ti ti-trending-up"></i><span>Ausgaben diesen Monat <strong>${trend.toFixed(0)}% höher</strong> als im Vormonat</span></div>`;}
-    else if(pmTotal>0&&trend<-20){alertEl.style.display='block';alertEl.innerHTML=`<div class="warn" style="background:rgba(52,199,89,.1);color:var(--green)"><i class="ti ti-trending-down"></i><span>Ausgaben diesen Monat <strong>${Math.abs(trend).toFixed(0)}% niedriger</strong> als im Vormonat 🎉</span></div>`;}
+    if(chartRange==='m'&&prevTotal>0&&trend>20){alertEl.style.display='block';alertEl.innerHTML=`<div class="warn red"><i class="ti ti-trending-up"></i><span>Ausgaben <strong>${trend.toFixed(0)}% höher</strong> als im Vormonat</span></div>`;}
+    else if(chartRange==='m'&&prevTotal>0&&trend<-20){alertEl.style.display='block';alertEl.innerHTML=`<div class="warn" style="background:rgba(52,199,89,.1);color:var(--green)"><i class="ti ti-trending-down"></i><span>Ausgaben <strong>${Math.abs(trend).toFixed(0)}% niedriger</strong> als im Vormonat 🎉</span></div>`;}
     else alertEl.style.display='none';
   }
 
-  // ---- MONATSVERLAUF ----
-  const bMs=[];
-  for(let i=cPeriod-1;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);bMs.push(d.toISOString().slice(0,7));}
-  const bL=bMs.map(m=>new Date(m+'-02').toLocaleDateString('de-DE',{month:'short',year:'2-digit'}));
-  const topCats=settings.categories.slice(0,5);
-  const bDs=topCats.map(cat=>({label:cat.name,data:bMs.map(m=>entries.filter(e=>e.date.startsWith(m)&&e.category===cat.id).reduce((s,e)=>s+e.amount,0)),backgroundColor:cat.color+'99',borderWidth:0,borderRadius:2}));
-  const barLeg = document.getElementById('bar-leg');
-  if(barLeg) barLeg.innerHTML=topCats.map(c=>`<span class="leg-item"><span class="leg-dot" style="background:${c.color}"></span>${c.name}</span>`).join('');
-  if(barInst)barInst.destroy();
-  const barEl=document.getElementById('barChart');
-  if(barEl) barInst=new Chart(barEl,{type:'bar',data:{labels:bL,datasets:bDs},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,grid:{display:false},ticks:{autoSkip:false,font:{size:10},color:tickC}},y:{stacked:true,grid:{color:gridC},ticks:{callback:v=>v>=1000?(v/1000).toFixed(0)+'k€':v+'€',font:{size:10},color:tickC}}},plugins:{legend:{display:false},tooltip:{callbacks:{footer:items=>'Gesamt: '+fmtEur(items.reduce((s,i)=>s+i.raw,0))}}}}});
+  // ---- BAR / LINE CHART ----
+  const barCard = document.getElementById('bar-card');
+  const lineCard = document.getElementById('line-card');
+  if(barInst){barInst.destroy();barInst=null;}
+  if(lineInst){lineInst.destroy();lineInst=null;}
+
+  if(barUnit==='day' && chartRange==='m') {
+    // Daily line chart for single month
+    if(barCard) barCard.style.display='none';
+    if(lineCard) lineCard.style.display='block';
+    const [fy,fm]=from.slice(0,7).split('-').map(Number);
+    const daysInM=new Date(fy,fm,0).getDate();
+    const lineLabels=[],lineData=[];
+    for(let d=1;d<=daysInM;d++){
+      const ds=`${from.slice(0,7)}-${String(d).padStart(2,'0')}`;
+      lineData.push(fEntries.filter(e=>e.date===ds).reduce((s,e)=>s+e.amount,0));
+      lineLabels.push(d);
+    }
+    const lineEl=document.getElementById('lineChart');
+    if(lineEl) lineInst=new Chart(lineEl,{type:'line',data:{labels:lineLabels,datasets:[{data:lineData,borderColor:'#007aff',backgroundColor:'rgba(0,122,255,.08)',borderWidth:2,pointRadius:lineData.map(v=>v>0?4:0),pointBackgroundColor:'#007aff',fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw>0?fmtEur(ctx.raw):'–'}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:10,font:{size:10},color:tickC}},y:{grid:{color:gridC},ticks:{callback:v=>v+'€',font:{size:10},color:tickC}}}}});
+  } else {
+    // Monthly bar chart
+    if(barCard) barCard.style.display='block';
+    if(lineCard) lineCard.style.display='none';
+    // Build months in range
+    const rangeMs=[];
+    let cur=new Date(from.slice(0,7)+'-02');
+    const endM=new Date(to.slice(0,7)+'-02');
+    while(cur<=endM){rangeMs.push(cur.toISOString().slice(0,7));cur=new Date(cur.getFullYear(),cur.getMonth()+1,2);}
+    const bL=rangeMs.map(m=>new Date(m+'-02').toLocaleDateString('de-DE',{month:'short',year:'2-digit'}));
+    const topCats=settings.categories.slice(0,5);
+    const bDs=topCats.map(cat=>({label:cat.name,data:rangeMs.map(m=>entries.filter(e=>e.date.startsWith(m)&&e.category===cat.id).reduce((s,e)=>s+e.amount,0)),backgroundColor:cat.color+'99',borderWidth:0,borderRadius:2}));
+    const barLeg=document.getElementById('bar-leg');
+    if(barLeg) barLeg.innerHTML=topCats.map(c=>`<span class="leg-item"><span class="leg-dot" style="background:${c.color}"></span>${c.name}</span>`).join('');
+    const barEl=document.getElementById('barChart');
+    if(barEl) barInst=new Chart(barEl,{type:'bar',data:{labels:bL,datasets:bDs},options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true,grid:{display:false},ticks:{autoSkip:true,maxTicksLimit:12,font:{size:10},color:tickC}},y:{stacked:true,grid:{color:gridC},ticks:{callback:v=>v>=1000?(v/1000).toFixed(0)+'k€':v+'€',font:{size:10},color:tickC}}},plugins:{legend:{display:false},tooltip:{callbacks:{footer:items=>'Gesamt: '+fmtEur(items.reduce((s,i)=>s+i.raw,0))}}}}});
+  }
 
   // ---- KATEGORIE DONUT ----
-  const pieE=entries.filter(e=>e.date.startsWith(curPie));
   const catT={};
-  for(const e of pieE) catT[e.category]=(catT[e.category]||0)+e.amount;
+  for(const e of fEntries) catT[e.category]=(catT[e.category]||0)+e.amount;
   const cIds=Object.keys(catT).sort((a,b)=>catT[b]-catT[a]);
   const pL=cIds.map(id=>getCat(id).name),pD=cIds.map(id=>catT[id]),pC=cIds.map(id=>getCat(id).color);
   const pieTotal=pD.reduce((s,v)=>s+v,0);
   const pieLeg=document.getElementById('pie-leg');
   if(pieLeg) pieLeg.innerHTML=cIds.map((id,i)=>`<span class="leg-item"><span class="leg-dot" style="background:${pC[i]}"></span>${pL[i]}: ${pieTotal>0?Math.round(pD[i]/pieTotal*100):0}%</span>`).join('');
-  if(pieInst)pieInst.destroy();
+  if(pieInst){pieInst.destroy();pieInst=null;}
   const pieEl=document.getElementById('pieChart');
-  if(pieEl&&pD.length) pieInst=new Chart(pieEl,{type:'doughnut',data:{labels:pL,datasets:[{data:pD,backgroundColor:pC,borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmtEur(ctx.raw)} (${pieTotal>0?Math.round(ctx.raw/pieTotal*100):0}%)`}}}}}); 
+  if(pieEl&&pD.length) pieInst=new Chart(pieEl,{type:'doughnut',data:{labels:pL,datasets:[{data:pD,backgroundColor:pC,borderWidth:0,hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${fmtEur(ctx.raw)} (${pieTotal>0?Math.round(ctx.raw/pieTotal*100):0}%)`}}}}});
 
   // ---- WOCHENTAG ----
   const dayNames=['Mo','Di','Mi','Do','Fr','Sa','So'];
   const dayTotals=Array(7).fill(0),dayCounts=Array(7).fill(0);
-  for(const e of entries){const d=new Date(e.date);const dow=(d.getDay()+6)%7;dayTotals[dow]+=e.amount;dayCounts[dow]++;}
+  for(const e of fEntries){const d=new Date(e.date);const dow=(d.getDay()+6)%7;dayTotals[dow]+=e.amount;dayCounts[dow]++;}
   const dayAvgs=dayTotals.map((t,i)=>dayCounts[i]>0?t/dayCounts[i]:0);
   const maxDay=Math.max(...dayAvgs);
   const weekColors=dayAvgs.map(v=>v===maxDay&&maxDay>0?'#ff3b30aa':'#007affaa');
-  if(weekInst)weekInst.destroy();
+  if(weekInst){weekInst.destroy();weekInst=null;}
   const weekEl=document.getElementById('weekChart');
   if(weekEl) weekInst=new Chart(weekEl,{type:'bar',data:{labels:dayNames,datasets:[{data:dayAvgs,backgroundColor:weekColors,borderWidth:0,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`∅ ${fmtEur(ctx.raw)}`}}},scales:{x:{grid:{display:false},ticks:{font:{size:12},color:tickC}},y:{grid:{color:gridC},ticks:{callback:v=>v+'€',font:{size:10},color:tickC}}}}});
 
   // ---- TOP 5 ----
-  const topE=entries.filter(e=>e.date.startsWith(curTop)).sort((a,b)=>b.amount-a.amount).slice(0,5);
+  const topE=[...fEntries].sort((a,b)=>b.amount-a.amount).slice(0,5);
   const topMax=topE.length?topE[0].amount:1;
   const top5El=document.getElementById('top5-list');
   if(top5El) top5El.innerHTML=topE.length?topE.map((e,i)=>{
@@ -983,733 +677,502 @@ function renderCharts() {
       </div>
       <span style="font-size:14px;font-weight:600;white-space:nowrap">${fmtEur(e.amount)}</span>
     </div>`;
-  }).join(''):'<div class="empty" style="padding:20px"><p>Keine Einträge</p></div>';
+  }).join(''):'<div class="empty" style="padding:20px"><p>Keine Einträge im Zeitraum</p></div>';
 
   // ---- PERSON ----
   const pT={};
-  for(const e of entries) pT[e.person]=(pT[e.person]||0)+e.amount;
+  for(const e of fEntries) pT[e.person]=(pT[e.person]||0)+e.amount;
   const pN=Object.keys(pT);
   const perLeg=document.getElementById('per-leg');
   if(perLeg) perLeg.innerHTML=pN.map((n,i)=>`<span class="leg-item"><span class="leg-dot" style="background:${pColors[i%pColors.length]}"></span>${n}: ${fmtS(pT[n])}</span>`).join('');
-  if(perInst)perInst.destroy();
+  if(perInst){perInst.destroy();perInst=null;}
   const perEl=document.getElementById('perChart');
   if(perEl&&pN.length) perInst=new Chart(perEl,{type:'bar',data:{labels:pN,datasets:[{data:pN.map(n=>pT[n]),backgroundColor:pN.map((n,i)=>pColors[i%pColors.length]+'99'),borderWidth:0,borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{size:13},color:tickC}},y:{grid:{color:gridC},ticks:{callback:v=>v+'€',font:{size:10},color:tickC}}}}});
-
-  // ---- TAGESLINIE ----
-  const [ly,lm]=curLine.split('-').map(Number);
-  const daysInLM=new Date(ly,lm,0).getDate();
-  const lineLabels=[],lineData=[];
-  for(let d=1;d<=daysInLM;d++){
-    const dateStr=`${curLine}-${String(d).padStart(2,'0')}`;
-    lineData.push(entries.filter(e=>e.date===dateStr).reduce((s,e)=>s+e.amount,0));
-    lineLabels.push(d);
-  }
-  if(lineInst)lineInst.destroy();
-  const lineEl=document.getElementById('lineChart');
-  if(lineEl) lineInst=new Chart(lineEl,{type:'line',data:{labels:lineLabels,datasets:[{data:lineData,borderColor:'#007aff',backgroundColor:'rgba(0,122,255,.08)',borderWidth:2,pointRadius:lineData.map(v=>v>0?4:0),pointBackgroundColor:'#007aff',fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.raw>0?fmtEur(ctx.raw):'Kein Eintrag'}}},scales:{x:{grid:{display:false},ticks:{maxTicksLimit:10,font:{size:10},color:tickC}},y:{grid:{color:gridC},ticks:{callback:v=>v+'€',font:{size:10},color:tickC}}}}});
 }
 window.renderCharts=renderCharts;
-window.setCP=p=>{cPeriod=p;document.getElementById('cp-6').classList.toggle('active',p===6);document.getElementById('cp-12').classList.toggle('active',p===12);renderCharts();};
-window.setCP=p=>{cPeriod=p;document.getElementById('cp-6').classList.toggle('active',p===6);document.getElementById('cp-12').classList.toggle('active',p===12);renderCharts();};
-
-// ---- SETTINGS ----
-function renderSettings() {
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  document.getElementById('dark-toggle').checked=isDark;
-  document.getElementById('cat-tags').innerHTML=settings.categories.map(c=>`<span class="stag"><span style="width:12px;height:12px;border-radius:50%;background:${c.color};display:inline-block"></span>${c.name}<button class="stag-del" onclick="delCat('${c.id}')">×</button></span>`).join('');
-  document.getElementById('person-tags').innerHTML=settings.persons.map(p=>`<span class="stag">${p}<button class="stag-del" onclick="delPerson('${p}')">×</button></span>`).join('');
-  document.getElementById('budget-inputs').innerHTML=settings.categories.map(cat=>`<div class="bl-row" onclick="openPadFor('budget','${cat.id}','${cat.name}')" style="cursor:pointer"><div class="bl-dot" style="background:${cat.color}"></div><span class="bl-name">${cat.name}</span><span id="budget-display-${cat.id}" style="font-size:16px;color:${settings.budgets[cat.id]?'var(--text)':'var(--text3)'};">${settings.budgets[cat.id]?settings.budgets[cat.id].toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €':'–'}</span><i class="ti ti-chevron-right" style="color:var(--text3);font-size:14px;margin-left:6px"></i></div>`).join('');
-}
-window.renderSettings=renderSettings;
-
-window.addCat=async()=>{
-  const n=document.getElementById('new-cat-name').value.trim();
-  const c=document.getElementById('new-cat-color').value;
-  if(!n)return;
-  const id=n.toLowerCase().replace(/[^a-z0-9]/g,'_')+'_'+Date.now().toString(36);
-  settings.categories.push({id,name:n,color:c});
-  document.getElementById('new-cat-name').value='';
-  await saveSettings();renderSettings();
-};
-window.delCat=async id=>{
-  if(entries.some(e=>e.category===id)&&!confirm('Kategorie wird verwendet. Trotzdem löschen?'))return;
-  settings.categories=settings.categories.filter(c=>c.id!==id);
-  delete settings.budgets[id];
-  await saveSettings();renderSettings();
-};
-window.addPerson=async()=>{
-  const n=document.getElementById('new-person-name').value.trim();
-  if(!n||settings.persons.includes(n))return;
-  settings.persons.push(n);
-  document.getElementById('new-person-name').value='';
-  await saveSettings();renderSettings();
-};
-window.delPerson=async p=>{
-  if(entries.some(e=>e.person===p)&&!confirm('Person hat Einträge. Trotzdem löschen?'))return;
-  settings.persons=settings.persons.filter(x=>x!==p);
-  await saveSettings();renderSettings();
-};
-window.setBudget=async(id,val)=>{
-  const n=parseFloat(val.replace(',','.'));
-  if(n>0)settings.budgets[id]=n;else delete settings.budgets[id];
-  await saveSettings();
-};
-</script>
-
-<script>
-// Prevent pinch zoom
-document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
-document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
-
-// Service Worker
-let swReg = null;
-if('serviceWorker' in navigator){
-  window.addEventListener('load', async () => {
-    try {
-      swReg = await navigator.serviceWorker.register('/Finanzausgaben-IM/sw.js');
-
-      // Listen for new SW waiting → show update available
-      swReg.addEventListener('updatefound', () => {
-        const newSW = swReg.installing;
-        newSW.addEventListener('statechange', () => {
-          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
-            showUpdateReady();
-          }
-        });
-      });
-
-      // If SW already waiting on load
-      if (swReg.waiting) showUpdateReady();
-
-      // Reload after SW takes control
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        window.location.reload();
-      });
-    } catch(e) {}
-  });
-}
-
-function showUpdateReady() {
-  const btn = document.getElementById('update-btn');
-  const label = document.getElementById('update-label');
-  const icon = document.getElementById('update-icon');
-  if (!btn) return;
-  btn.style.background = 'var(--accent)';
-  btn.style.color = '#fff';
-  btn.style.borderColor = 'var(--accent)';
-  if (icon) icon.className = 'ti ti-download';
-  if (label) label.textContent = 'Update verfügbar – Jetzt installieren';
-}
-
-async function checkForUpdate() {
-  const btn = document.getElementById('update-btn');
-  const label = document.getElementById('update-label');
-  const icon = document.getElementById('update-icon');
-
-  // Animate
-  if (icon) { icon.style.animation = 'spin .7s linear infinite'; }
-  if (label) label.textContent = 'Prüfe auf Updates…';
-
-  try {
-    if (swReg) {
-      await swReg.update();
-      await new Promise(r => setTimeout(r, 1200));
-
-      if (swReg.waiting) {
-        // New version ready → activate it
-        if (icon) icon.style.animation = '';
-        showUpdateReady();
-        // Auto-activate
-        swReg.waiting.postMessage({type:'SKIP_WAITING'});
-      } else {
-        // Already up to date
-        if (icon) { icon.style.animation=''; icon.className='ti ti-circle-check'; }
-        if (label) label.textContent = 'App ist aktuell ✓';
-        if (btn) { btn.style.color='var(--green)'; btn.style.borderColor='var(--green)'; }
-        setTimeout(() => {
-          if (icon) icon.className = 'ti ti-refresh';
-          if (label) label.textContent = 'Auf Updates prüfen';
-          if (btn) { btn.style.color='var(--accent)'; btn.style.borderColor='var(--sep)'; btn.style.background='var(--surface)'; }
-        }, 3000);
-      }
-    }
-  } catch(e) {
-    if (icon) { icon.style.animation=''; icon.className='ti ti-alert-circle'; }
-    if (label) label.textContent = 'Fehler – Bitte Internetverbindung prüfen';
-    setTimeout(() => {
-      if (icon) icon.className='ti ti-refresh';
-      if (label) label.textContent='Auf Updates prüfen';
-    }, 3000);
-  }
-}
-window.checkForUpdate = checkForUpdate;
-</script>
-
-<!-- NUMPAD OVERLAY -->
-<div id="numpad-overlay" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.4);" onclick="if(event.target===this)closePad()">
-  <div id="numpad-sheet" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:16px 16px calc(16px + var(--safe-bottom));box-shadow:0 -4px 24px rgba(0,0,0,.2);">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
-      <span id="pad-title" style="font-size:15px;font-weight:600;color:var(--text2)">Betrag eingeben</span>
-      <button onclick="closePad()" style="background:var(--surface2);border:none;border-radius:99px;width:30px;height:30px;font-size:18px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">×</button>
-    </div>
-    <div id="pad-display" style="text-align:right;font-size:40px;font-weight:700;letter-spacing:-1px;color:var(--text);padding:8px 4px 16px;min-height:64px;border-bottom:0.5px solid var(--sep);margin-bottom:12px;">0,00</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
-      <button class="pad-btn" onclick="padPress('7')">7</button>
-      <button class="pad-btn" onclick="padPress('8')">8</button>
-      <button class="pad-btn" onclick="padPress('9')">9</button>
-      <button class="pad-btn" onclick="padPress('4')">4</button>
-      <button class="pad-btn" onclick="padPress('5')">5</button>
-      <button class="pad-btn" onclick="padPress('6')">6</button>
-      <button class="pad-btn" onclick="padPress('1')">1</button>
-      <button class="pad-btn" onclick="padPress('2')">2</button>
-      <button class="pad-btn" onclick="padPress('3')">3</button>
-      <button class="pad-btn" onclick="padPress(',')">','</button>
-      <button class="pad-btn" onclick="padPress('0')">0</button>
-      <button class="pad-btn pad-del" onclick="padPress('del')"><i class="ti ti-backspace"></i></button>
-    </div>
-    <button onclick="confirmPad()" style="margin-top:12px;width:100%;padding:16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;letter-spacing:-.2px;">Übernehmen</button>
-  </div>
-</div>
-
+let weekInst, lineInst;<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Ausgaben">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Ausgaben</title>
+<meta name="app-version" content="2.1.5590">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-.pad-btn {
-  padding: 18px 8px;
-  background: var(--surface2);
-  border: none;
-  border-radius: var(--radius);
-  font-size: 24px;
-  font-weight: 500;
-  font-family: inherit;
+:root {
+  --bg: #f2f2f7;
+  --bg2: #ffffff;
+  --bg3: #f2f2f7;
+  --surface: #ffffff;
+  --surface2: #f2f2f7;
+  --surface3: #e5e5ea;
+  --text: #000000;
+  --text2: #3c3c43cc;
+  --text3: #3c3c4399;
+  --sep: rgba(60,60,67,0.12);
+  --accent: #007aff;
+  --accent2: #0056cc;
+  --green: #34c759;
+  --red: #ff3b30;
+  --orange: #ff9500;
+  --radius: 13px;
+  --radius-sm: 10px;
+  --safe-top: env(safe-area-inset-top, 44px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tab-h: 49px;
+  --version: "v2.0";
+}
+[data-theme="dark"] {
+  --bg: #000000;
+  --bg2: #1c1c1e;
+  --bg3: #000000;
+  --surface: #1c1c1e;
+  --surface2: #2c2c2e;
+  --surface3: #3a3a3c;
+  --text: #ffffff;
+  --text2: rgba(235,235,245,0.6);
+  --text3: rgba(235,235,245,0.3);
+  --sep: rgba(84,84,88,0.65);
+  --accent: #0a84ff;
+  --accent2: #409cff;
+  --green: #30d158;
+  --red: #ff453a;
+  --orange: #ff9f0a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+html { height: 100%; }
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--bg);
   color: var(--text);
-  cursor: pointer;
-  transition: background .1s, transform .08s;
+  height: 100%;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- APP SHELL ---- */
+.app { display: flex; flex-direction: column; height: 100vh; height: 100dvh; background: var(--bg); }
+
+/* ---- STATUS BAR SPACER ---- */
+.status-space { height: var(--safe-top); background: var(--surface); flex-shrink: 0; }
+
+/* ---- NAV BAR ---- */
+.navbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 16px; height: 44px;
+  background: var(--surface);
+  border-bottom: 0.5px solid var(--sep);
+  flex-shrink: 0;
+  position: relative;
+}
+.navbar-title { font-size: 17px; font-weight: 600; position: absolute; left: 50%; transform: translateX(-50%); }
+.navbar-btn { background: none; border: none; color: var(--accent); font-size: 15px; font-weight: 400; font-family: inherit; cursor: pointer; padding: 6px 0; display: flex; align-items: center; gap: 4px; }
+.navbar-btn i { font-size: 18px; }
+
+/* ---- SCROLL CONTENT ---- */
+.content {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-bottom: calc(var(--tab-h) + var(--safe-bottom) + 24px);
+}
+
+/* ---- TAB BAR ---- */
+.tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: calc(var(--tab-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: rgba(var(--surface-rgb, 255,255,255), 0.85);
+  background: var(--surface);
+  border-top: 0.5px solid var(--sep);
+  display: flex; z-index: 90;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.tab {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 3px; border: none; background: none;
+  color: var(--text3); font-family: inherit; cursor: pointer;
+  transition: color .15s;
+}
+.tab i { font-size: 24px; }
+.tab span { font-size: 10px; font-weight: 500; }
+.tab.active { color: var(--accent); }
+
+/* ---- SECTIONS ---- */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ---- PAGE HEADER ---- */
+.page-hdr { padding: 28px 16px 8px; }
+.page-hdr h1 { font-size: 34px; font-weight: 700; letter-spacing: -.5px; }
+.page-hdr p { font-size: 13px; color: var(--text2); margin-top: 4px; }
+
+/* ---- GROUPED LIST (iOS style) ---- */
+.group { margin: 0 16px 20px; }
+.group-label { font-size: 13px; font-weight: 400; color: var(--text2); padding: 0 4px 6px; text-transform: uppercase; letter-spacing: .04em; }
+.group-card { background: var(--surface); border-radius: var(--radius); overflow: hidden; }
+.row {
+  display: flex; align-items: center; min-height: 44px;
+  padding: 10px 16px; gap: 12px;
+  border-bottom: 0.5px solid var(--sep);
+  position: relative;
+}
+.row:last-child { border-bottom: none; }
+.row-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; color: #fff; }
+.row-body { flex: 1; min-width: 0; }
+.row-title { font-size: 17px; font-weight: 400; }
+.row-sub { font-size: 13px; color: var(--text2); margin-top: 1px; }
+.row-right { color: var(--text2); font-size: 17px; white-space: nowrap; }
+.row-right.accent { color: var(--accent); }
+.row-right.green { color: var(--green); }
+.row-right.red { color: var(--red); }
+.row-right.bold { font-weight: 600; color: var(--text); }
+.row-chevron { color: var(--text3); font-size: 16px; margin-left: 4px; }
+.row-del { background: none; border: none; color: var(--red); padding: 4px 8px; cursor: pointer; font-size: 18px; }
+
+/* ---- METRIC CARDS ---- */
+.metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 0 16px 20px; }
+.metric-card { background: var(--surface); border-radius: var(--radius); padding: 14px 16px; }
+.metric-card .label { font-size: 13px; color: var(--text2); margin-bottom: 4px; }
+.metric-card .value { font-size: 24px; font-weight: 700; letter-spacing: -.5px; }
+.metric-card .sub { font-size: 12px; color: var(--text3); margin-top: 3px; }
+.metric-card.accent-card { background: var(--accent); }
+.metric-card.accent-card .label { color: rgba(255,255,255,.7); }
+.metric-card.accent-card .value { color: #fff; }
+.metric-card.accent-card .sub { color: rgba(255,255,255,.6); }
+
+/* ---- BUDGET BARS ---- */
+.budget-row-item { padding: 12px 16px; border-bottom: 0.5px solid var(--sep); }
+.budget-row-item:last-child { border-bottom: none; }
+.budget-top { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 7px; }
+.budget-top .bname { font-weight: 500; }
+.budget-top .bnums { font-size: 13px; color: var(--text2); }
+.btrack { height: 4px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.bfill { height: 100%; border-radius: 99px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+
+/* ---- WARNINGS ---- */
+.warn-zone { padding: 0 16px; margin-bottom: 4px; }
+.warn {
+  display: flex; align-items: flex-start; gap: 10px; padding: 12px 14px;
+  border-radius: var(--radius-sm); font-size: 14px; margin-bottom: 8px;
+}
+.warn.red { background: rgba(255,59,48,.1); color: var(--red); }
+.warn.orange { background: rgba(255,149,0,.1); color: var(--orange); }
+.warn i { font-size: 18px; margin-top: 1px; flex-shrink: 0; }
+
+/* ---- SEGMENT CONTROL ---- */
+.segment { display: flex; background: var(--surface2); border-radius: 9px; padding: 2px; }
+.seg-btn { flex: 1; padding: 6px; border: none; background: none; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--text2); cursor: pointer; border-radius: 7px; transition: all .2s; }
+.seg-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+
+/* ---- CHART CARD ---- */
+.chart-card { background: var(--surface); border-radius: var(--radius); margin: 0 16px 20px; overflow: hidden; }
+.chart-hdr { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 0; }
+.chart-hdr-title { font-size: 15px; font-weight: 600; }
+.chart-body { padding: 12px 16px 16px; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 12px; }
+.leg-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+.leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* ---- FILTER CHIPS ---- */
+.chips { display: flex; gap: 8px; padding: 0 16px 12px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex-shrink: 0; padding: 6px 14px; border-radius: 99px; border: 1.5px solid var(--sep); font-size: 14px; font-weight: 500; font-family: inherit; background: var(--surface); color: var(--text2); cursor: pointer; }
+.chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ---- EMPTY STATE ---- */
+.empty { text-align: center; padding: 48px 24px; color: var(--text3); }
+.empty i { font-size: 44px; display: block; margin-bottom: 12px; }
+.empty p { font-size: 15px; }
+
+/* ---- ADD FORM (native iOS feel) ---- */
+.form-group { margin: 0 16px 20px; }
+.form-group .group-label { font-size: 13px; color: var(--text2); padding: 0 4px 6px; text-transform: uppercase; letter-spacing: .04em; }
+.form-row {
+  display: flex; align-items: center;
+  background: var(--surface); min-height: 50px;
+  padding: 0 16px; gap: 12px;
+  border-bottom: 0.5px solid var(--sep);
+}
+.form-row:first-child { border-radius: var(--radius) var(--radius) 0 0; }
+.form-row:last-child { border-radius: 0 0 var(--radius) var(--radius); border-bottom: none; }
+.form-row:only-child { border-radius: var(--radius); border-bottom: none; }
+.form-lbl { font-size: 17px; width: 110px; flex-shrink: 0; color: var(--text); font-weight: 400; }
+.form-row input, .form-row select {
+  flex: 1; border: none; background: transparent;
+  font-size: 17px; font-family: 'Inter', -apple-system, sans-serif;
+  color: var(--text); text-align: right; padding: 13px 0;
+  outline: none; min-width: 0; -webkit-appearance: none;
+  caret-color: var(--accent);
+}
+.form-row input::placeholder { color: var(--text3); }
+.form-row select { cursor: pointer; }
+.form-row select option { background: var(--surface); color: var(--text); }
+
+.save-btn {
+  display: block; margin: 0 16px;
+  width: calc(100% - 32px);
+  padding: 16px; border: none; border-radius: var(--radius);
+  background: var(--accent); color: #fff;
+  font-size: 17px; font-weight: 600; font-family: inherit;
+  cursor: pointer; letter-spacing: -.2px;
   -webkit-appearance: none;
+  transition: opacity .15s, transform .1s;
 }
-.pad-btn:active { background: var(--surface3); transform: scale(.94); }
-.pad-del { font-size: 20px; }
+.save-btn:active { opacity: .85; transform: scale(.99); }
+
+/* ---- SETTINGS ---- */
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 0.5px solid var(--sep); }
+.toggle-row:last-child { border-bottom: none; }
+.toggle-label { font-size: 17px; }
+.toggle { position: relative; width: 51px; height: 31px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute; inset: 0; border-radius: 99px;
+  background: var(--surface3); cursor: pointer;
+  transition: background .2s;
+}
+.toggle input:checked + .toggle-track { background: var(--green); }
+.toggle-thumb {
+  position: absolute; top: 2px; left: 2px;
+  width: 27px; height: 27px; border-radius: 50%;
+  background: #fff; transition: transform .2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,.3);
+  pointer-events: none;
+}
+.toggle input:checked ~ .toggle-thumb { transform: translateX(20px); }
+
+.tag-wrap { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px 4px; }
+.stag { display: flex; align-items: center; gap: 5px; padding: 5px 10px 5px 8px; background: var(--surface2); border-radius: 99px; font-size: 14px; }
+.stag-del { background: none; border: none; color: var(--text3); font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
+.stag-del:active { color: var(--red); }
+.inline-add { display: flex; flex-direction: column; gap: 8px; padding: 10px 16px 14px; }
+.inline-add-row { display: flex; gap: 8px; }
+.inline-add input[type=text] { flex: 1; padding: 11px 12px; background: var(--surface2); border: none; border-radius: var(--radius-sm); font-size: 16px; font-family: inherit; color: var(--text); outline: none; -webkit-appearance: none; min-width: 0; }
+.inline-add input[type=color] { width: 44px; height: 44px; padding: 3px; border: none; border-radius: 10px; background: var(--surface2); cursor: pointer; flex-shrink: 0; }
+.inline-add .iadd-btn { width: 100%; padding: 12px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; }
+
+.bl-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid var(--sep); }
+.bl-row:last-child { border-bottom: none; }
+.bl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.bl-name { font-size: 17px; flex: 1; }
+.bl-input { width: 95px; padding: 7px 10px; text-align: right; background: var(--surface2); border: none; border-radius: var(--radius-sm); font-size: 16px; font-family: 'Inter', -apple-system, sans-serif; color: var(--text); outline: none; -webkit-appearance: none; }
+.bl-unit { font-size: 13px; color: var(--text2); }
+
+/* ---- SYNC PILL ---- */
+.sync-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 500;
+  margin: 8px 16px 0; transition: all .3s;
+}
+.sync-pill.ok { background: rgba(52,199,89,.12); color: var(--green); }
+.sync-pill.syncing { background: rgba(255,149,0,.12); color: var(--orange); }
+.sync-pill.err { background: rgba(255,59,48,.12); color: var(--red); }
+.sync-pill.hidden { display: none; }
+.sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ---- VERSION ---- */
+.version-tag { font-size: 12px; color: var(--text3); text-align: center; padding: 4px 0 8px; }
+
+/* ---- LOADING ---- */
+.loader {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  z-index: 999;
+}
+.loader.gone { display: none; }
+.loader-icon { width: 72px; height: 72px; background: var(--accent); border-radius: 18px; display: flex; align-items: center; justify-content: center; }
+.loader-icon i { font-size: 38px; color: #fff; }
+.loader-name { font-size: 22px; font-weight: 700; }
+.loader-sub { font-size: 14px; color: var(--text2); }
+.spin { width: 22px; height: 22px; border: 2.5px solid var(--sep); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- PERIOD SEGMENT inside card ---- */
+.card-seg { display: flex; background: var(--surface2); border-radius: 7px; padding: 2px; }
+.cseg { flex: 1; padding: 5px 10px; border: none; background: none; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text2); cursor: pointer; border-radius: 6px; transition: all .15s; text-align: center; }
+.cseg.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+
+input, select, textarea { font-size: 16px; }
+.range-btn { flex:1; padding:10px 4px; border:none; background:none; font-family:inherit; font-size:13px; font-weight:500; color:var(--text2); cursor:pointer; transition:all .15s; }
+.range-btn.active { color:var(--accent); font-weight:700; background:rgba(0,122,255,.08); }
+.top5-row { cursor:pointer; transition:opacity .1s; }
+.top5-row:active { opacity:.7; }
+.top5-row { cursor:pointer; transition:opacity .1s; }
+.top5-row:active { opacity:.7; }
 </style>
+</head>
+<body>
 
-<script>
-let padVal = '';
-
-let padContext = null; // {type:'amount'} or {type:'budget', id:'...', name:'...'}
-
-function openPad() { openPadFor('amount'); }
-
-function openPadFor(type, id, name) {
-  padContext = {type, id, name};
-  if (type === 'amount') {
-    const cur = document.getElementById('f-amount').value;
-    padVal = cur ? cur.replace('.', ',') : '';
-    document.getElementById('pad-title').textContent = 'Betrag eingeben';
-  } else if (type === 'budget') {
-    const cur = window._settings ? (window._settings.budgets[id] || '') : '';
-    padVal = cur ? cur.toString().replace('.', ',') : '';
-    document.getElementById('pad-title').textContent = name + ' – Budget';
-  }
-  updatePadDisplay();
-  document.getElementById('numpad-overlay').style.display = 'block';
-  document.body.style.overflow = 'hidden';
-}
-
-function closePad() {
-  document.getElementById('numpad-overlay').style.display = 'none';
-  // If we were editing an entry amount, restore the edit overlay
-  if (padContext && padContext.type === 'edit-amount') {
-    document.getElementById('edit-overlay').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
-  }
-  padContext = null;
-}
-
-async function confirmPad() {
-  const num = parseFloat(padVal.replace(',', '.')) || 0;
-  if (!padContext || padContext.type === 'amount') {
-    document.getElementById('f-amount').value = num.toString();
-    const display = num > 0 ? num.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0,00';
-    document.getElementById('amt-display').textContent = display;
-    document.getElementById('amt-display').style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
-  } else if (padContext.type === 'budget') {
-    const id = padContext.id;
-    const dispEl = document.getElementById('budget-display-' + id);
-    if (dispEl) {
-      dispEl.textContent = num > 0 ? num.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2}) + ' €' : '–';
-      dispEl.style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
-    }
-    if (window.setBudget) await window.setBudget(id, num > 0 ? num.toString() : '');
-  }
-  closePad();
-}
-
-function updatePadDisplay() {
-  const el = document.getElementById('pad-display');
-  if (!padVal) { el.textContent = '0,00'; el.style.color = 'var(--text3)'; return; }
-  el.textContent = padVal;
-  el.style.color = 'var(--text)';
-}
-
-function padPress(key) {
-  if (key === 'del') {
-    padVal = padVal.slice(0, -1);
-  } else if (key === ',') {
-    if (padVal.includes(',')) return;
-    if (!padVal) padVal = '0';
-    padVal += ',';
-  } else {
-    // Max 2 decimal places
-    if (padVal.includes(',') && padVal.split(',')[1].length >= 2) return;
-    // Max 7 digits before comma
-    if (!padVal.includes(',') && padVal.replace(/^0/, '').length >= 7) return;
-    // No leading zeros
-    if (padVal === '0' && key !== ',') padVal = key;
-    else padVal += key;
-  }
-  updatePadDisplay();
-}
-
-// Reset pad when switching to add tab
-const origInitAddForm = window.initAddForm;
-window.initAddForm = function() {
-  if (origInitAddForm) origInitAddForm();
-  padVal = '';
-  document.getElementById('amt-display').textContent = '0,00';
-  document.getElementById('amt-display').style.color = 'var(--text3)';
-  document.getElementById('f-amount').value = '';
-};
-</script>
-
-
-<!-- EDIT MODAL -->
-<div id="edit-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);" onclick="if(event.target===this)closeEdit()">
-  <div id="edit-sheet" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 calc(16px + var(--safe-bottom));max-height:90vh;overflow-y:auto;">
-    
-    <!-- Handle -->
-    <div style="display:flex;justify-content:center;padding:10px 0 0">
-      <div style="width:36px;height:4px;border-radius:99px;background:var(--surface3)"></div>
-    </div>
-    
-    <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 10px">
-      <span style="font-size:17px;font-weight:700">Eintrag bearbeiten</span>
-      <button onclick="closeEdit()" style="background:var(--surface2);border:none;border-radius:99px;width:30px;height:30px;font-size:18px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">×</button>
-    </div>
-
-    <!-- Betrag -->
-    <div style="margin:0 16px 12px">
-      <div style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;padding:0 4px 6px">Betrag & Beschreibung</div>
-      <div style="background:var(--surface2);border-radius:var(--radius);overflow:hidden">
-        <div class="form-row" onclick="openPadFor('edit-amount')" style="cursor:pointer;background:var(--surface2)">
-          <span class="form-lbl">Betrag (€)</span>
-          <input type="hidden" id="edit-amount-hidden">
-          <span id="edit-amt-display" style="flex:1;text-align:right;font-size:22px;font-weight:600;color:var(--text);padding:10px 0;letter-spacing:-.5px">0,00</span>
-          <i class="ti ti-calculator" style="color:var(--text3);font-size:18px;margin-left:6px"></i>
-        </div>
-        <div class="form-row" style="background:var(--surface2)"><span class="form-lbl">Beschreibung</span><input type="text" id="edit-desc" autocomplete="off" autocorrect="off" autocapitalize="sentences" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;caret-color:var(--accent)"></div>
-        <div class="form-row" style="background:var(--surface2);border-bottom:none"><span class="form-lbl">Datum</span><input type="date" id="edit-date" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;"></div>
-      </div>
-    </div>
-
-    <!-- Details -->
-    <div style="margin:0 16px 16px">
-      <div style="font-size:12px;font-weight:600;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;padding:0 4px 6px">Details</div>
-      <div style="background:var(--surface2);border-radius:var(--radius);overflow:hidden">
-        <div class="form-row" style="background:var(--surface2)"><span class="form-lbl">Kategorie</span><select id="edit-cat" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;cursor:pointer;"></select></div>
-        <div class="form-row" style="background:var(--surface2)"><span class="form-lbl">Person</span><select id="edit-person" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;cursor:pointer;"></select></div>
-        <div class="form-row" style="background:var(--surface2);border-bottom:none"><span class="form-lbl">Notiz</span><input type="text" id="edit-note" placeholder="Optional" autocomplete="off" autocorrect="off" style="flex:1;border:none;background:transparent;font-size:17px;font-family:inherit;color:var(--text);text-align:right;padding:13px 0;outline:none;-webkit-appearance:none;caret-color:var(--accent)"></div>
-      </div>
-    </div>
-
-    <!-- Buttons -->
-    <div style="padding:0 16px;display:flex;flex-direction:column;gap:10px">
-      <button onclick="saveEdit()" style="width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;">Änderungen speichern</button>
-      <button onclick="deleteFromEdit()" style="width:100%;padding:15px;background:rgba(255,59,48,.12);color:var(--red);border:none;border-radius:var(--radius);font-size:17px;font-weight:600;font-family:inherit;cursor:pointer;">Eintrag löschen</button>
-    </div>
-  </div>
+<div class="loader" id="loader">
+  <div class="loader-icon"><i class="ti ti-wallet"></i></div>
+  <div class="loader-name">Ausgaben</div>
+  <div class="loader-sub">Verbinde…</div>
+  <div class="spin"></div>
 </div>
 
-<script>
-let editingId = null;
+<div class="app" id="app" style="display:none">
+  <div class="status-space"></div>
 
-function openEdit(id) {
-  const e = window._entries ? window._entries.find(x=>x.id===id) : null;
-  if (!e) return;
-  editingId = id;
-
-  // Populate fields
-  const amt = e.amount || 0;
-  document.getElementById('edit-amount-hidden').value = amt;
-  document.getElementById('edit-amt-display').textContent = amt.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('edit-amt-display').style.color = 'var(--text)';
-  document.getElementById('edit-desc').value = e.desc || '';
-  document.getElementById('edit-date').value = e.date || '';
-  document.getElementById('edit-note').value = e.note || '';
-
-  // Populate selects
-  const cats = window._settings ? window._settings.categories : [];
-  const persons = window._settings ? window._settings.persons : [];
-  document.getElementById('edit-cat').innerHTML = cats.map(c=>`<option value="${c.id}"${c.id===e.category?' selected':''}>${c.name}</option>`).join('');
-  document.getElementById('edit-person').innerHTML = persons.map(p=>`<option value="${p}"${p===e.person?' selected':''}>${p}</option>`).join('');
-
-  // Show modal
-  document.getElementById('edit-overlay').style.display = 'block';
-  document.body.style.overflow = 'hidden';
-}
-window.openEdit = openEdit;
-
-function closeEdit() {
-  document.getElementById('edit-overlay').style.display = 'none';
-  document.body.style.overflow = '';
-  editingId = null;
-}
-window.closeEdit = closeEdit;
-
-async function saveEdit() {
-  if (!editingId) return;
-  const amount = parseFloat(document.getElementById('edit-amount-hidden').value) || 0;
-  const desc = document.getElementById('edit-desc').value.trim();
-  const date = document.getElementById('edit-date').value;
-  const category = document.getElementById('edit-cat').value;
-  const person = document.getElementById('edit-person').value;
-  const note = document.getElementById('edit-note').value.trim();
-  if (!desc || !amount || !date) { alert('Bitte Betrag, Beschreibung und Datum angeben.'); return; }
-  if (window.setSyncStatus) window.setSyncStatus('syncing','Speichern…');
-  try {
-    const { getFirestore, doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-    const app = getApps()[0];
-    const db = getFirestore(app);
-    await updateDoc(doc(db,'entries',editingId), {desc,amount,date,category,person,note});
-    if (window.setSyncStatus) window.setSyncStatus('ok','Gespeichert ✓');
-    closeEdit();
-  } catch(err) {
-    if (window.setSyncStatus) window.setSyncStatus('err','Fehler');
-    console.error(err);
-  }
-}
-
-async function deleteFromEdit() {
-  if (!editingId) return;
-  if (!confirm('Eintrag wirklich löschen?')) return;
-  if (window.setSyncStatus) window.setSyncStatus('syncing','Löschen…');
-  try {
-    const { getFirestore, doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-    const { getApps } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-    const app = getApps()[0];
-    const db = getFirestore(app);
-    await deleteDoc(doc(db,'entries',editingId));
-    if (window.setSyncStatus) window.setSyncStatus('ok','Gelöscht ✓');
-    closeEdit();
-  } catch(err) {
-    if (window.setSyncStatus) window.setSyncStatus('err','Fehler');
-  }
-}
-
-// Unified pad context handler for edit-amount
-// We extend the existing padContext system — 'edit-amount' is just another context type
-const _origOpenPadFor2 = window.openPadFor;
-window.openPadFor = function(type, id, name) {
-  if (type === 'edit-amount') {
-    padContext = {type: 'edit-amount'};
-    const cur = document.getElementById('edit-amount-hidden').value;
-    padVal = cur ? (parseFloat(cur) > 0 ? parseFloat(cur).toString().replace('.', ',') : '') : '';
-    document.getElementById('pad-title').textContent = 'Betrag bearbeiten';
-    updatePadDisplay();
-    // iOS fix: move numpad ABOVE edit overlay by briefly hiding edit overlay
-    document.getElementById('edit-overlay').style.display = 'none';
-    document.getElementById('numpad-overlay').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    return;
-  }
-  if (_origOpenPadFor2) _origOpenPadFor2(type, id, name);
-};
-
-// Extend confirmPad to handle edit-amount context
-const _origConfirmPad2 = window.confirmPad;
-window.confirmPad = async function() {
-  if (padContext && padContext.type === 'edit-amount') {
-    const num = parseFloat(padVal.replace(',', '.')) || 0;
-    document.getElementById('edit-amount-hidden').value = num.toString();
-    const display = num > 0 ? num.toLocaleString('de-DE', {minimumFractionDigits:2, maximumFractionDigits:2}) : '0,00';
-    document.getElementById('edit-amt-display').textContent = display;
-    document.getElementById('edit-amt-display').style.color = num > 0 ? 'var(--text)' : 'var(--text3)';
-    padContext = null;
-    document.getElementById('numpad-overlay').style.display = 'none';
-    // Restore edit overlay
-    document.getElementById('edit-overlay').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-    return;
-  }
-  if (_origConfirmPad2) await _origConfirmPad2();
-};
-</script>
-
-
-<!-- CATEGORY DETAIL MODAL -->
-<div id="catdetail-overlay" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.5);" onclick="if(event.target===this)closeCatDetail()">
-  <div id="catdetail-sheet" style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;max-height:85vh;display:flex;flex-direction:column;">
-    <!-- Handle -->
-    <div style="display:flex;justify-content:center;padding:10px 0 0;flex-shrink:0">
-      <div style="width:36px;height:4px;border-radius:99px;background:var(--surface3)"></div>
+  <div class="navbar">
+    <div style="width:60px"></div>
+    <div class="navbar-title" id="nav-title">Übersicht</div>
+    <div style="width:60px;display:flex;justify-content:flex-end">
+      <button class="navbar-btn" id="theme-btn" onclick="toggleTheme()"><i class="ti ti-moon"></i></button>
     </div>
-    <!-- Header -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 0;flex-shrink:0">
-      <div>
-        <div id="catdetail-title" style="font-size:20px;font-weight:700"></div>
-        <div id="catdetail-sub" style="font-size:13px;color:var(--text2);margin-top:2px"></div>
-      </div>
-      <button onclick="closeCatDetail()" style="background:var(--surface2);border:none;border-radius:99px;width:30px;height:30px;font-size:18px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">×</button>
-    </div>
-    <!-- Summary bar -->
-    <div id="catdetail-bar-wrap" style="padding:14px 20px 10px;flex-shrink:0">
-      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:6px">
-        <span id="catdetail-spent-label">Ausgegeben</span>
-        <span id="catdetail-pct"></span>
-      </div>
-      <div style="height:6px;background:var(--surface2);border-radius:99px;overflow:hidden">
-        <div id="catdetail-bar" style="height:100%;border-radius:99px;transition:width .5s"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;margin-top:6px">
-        <span id="catdetail-spent" style="font-size:22px;font-weight:700"></span>
-        <span id="catdetail-budget" style="font-size:14px;color:var(--text2);align-self:flex-end;padding-bottom:2px"></span>
-      </div>
-    </div>
-    <div style="height:0.5px;background:var(--sep);flex-shrink:0;margin:0 16px"></div>
-    <!-- Entry list -->
-    <div id="catdetail-list" style="overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:calc(16px + var(--safe-bottom))"></div>
   </div>
-</div>
 
-<script>
-function openCatDetail(catId) {
-  const cat = window._settings ? window._settings.categories.find(c=>c.id===catId) : null;
-  if (!cat) return;
-  const now = new Date();
-  const m = now.getMonth(), y = now.getFullYear();
-  const bPeriodCurrent = document.getElementById('bp-m').classList.contains('active') ? 'm' : 'j';
-  const allEntries = window._entries || [];
+  <div class="content" id="content">
 
-  let catEntries;
-  if (bPeriodCurrent === 'm') {
-    catEntries = allEntries.filter(e => {
-      const d = new Date(e.date);
-      return d.getMonth()===m && d.getFullYear()===y && e.category===catId;
-    });
-  } else {
-    catEntries = allEntries.filter(e => new Date(e.date).getFullYear()===y && e.category===catId);
-  }
-  catEntries.sort((a,b)=>b.date.localeCompare(a.date));
-
-  const spent = catEntries.reduce((s,e)=>s+e.amount, 0);
-  const budget = window._settings.budgets[catId] || 0;
-  const factor = bPeriodCurrent==='j' ? 12 : 1;
-  const budgetTotal = budget * factor;
-  const pct = budgetTotal > 0 ? Math.min(100, spent/budgetTotal*100) : 0;
-  const col = pct>=100 ? 'var(--red)' : pct>=80 ? 'var(--orange)' : cat.color;
-
-  document.getElementById('catdetail-title').textContent = cat.name;
-  document.getElementById('catdetail-sub').textContent = bPeriodCurrent==='m'
-    ? now.toLocaleDateString('de-DE',{month:'long',year:'numeric'})
-    : 'Jahr ' + y;
-  document.getElementById('catdetail-spent').textContent = fmtEur(spent);
-  document.getElementById('catdetail-bar').style.width = pct + '%';
-  document.getElementById('catdetail-bar').style.background = col;
-  document.getElementById('catdetail-pct').textContent = budgetTotal > 0 ? Math.round(pct) + '%' : '';
-  document.getElementById('catdetail-budget').textContent = budgetTotal > 0 ? 'von ' + fmtEur(budgetTotal) : 'Kein Budget gesetzt';
-
-  // Entry list
-  const listEl = document.getElementById('catdetail-list');
-  if (!catEntries.length) {
-    listEl.innerHTML = '<div class="empty"><i class="ti ti-receipt-off"></i><p>Keine Einträge</p></div>';
-  } else {
-    listEl.innerHTML = catEntries.map(e => `
-      <div class="row" onclick="closeCatDetail();setTimeout(()=>openEdit('${e.id}'),200)" style="cursor:pointer">
-        <div class="row-body">
-          <div class="row-title">${e.desc}${e.note?` <span style="font-size:12px;color:var(--text3)">– ${e.note}</span>`:''}</div>
-          <div class="row-sub">${e.person} · ${new Date(e.date).toLocaleDateString('de-DE')}</div>
+    <!-- ÜBERSICHT -->
+    <div id="sec-overview" class="section active">
+      <div id="warn-zone" class="warn-zone"></div>
+      <div id="sync-pill" class="sync-pill hidden"><div class="sync-dot"></div><span id="sync-txt">Synchronisiert</span></div>
+      <div class="metrics" id="metrics"></div>
+      <div class="group">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 6px">
+          <span class="group-label" style="padding:0;margin:0">Budget</span>
+          <div class="card-seg">
+            <button class="cseg active" id="bp-m" onclick="setBP('m')">Monat</button>
+            <button class="cseg" id="bp-j" onclick="setBP('j')">Jahr</button>
+          </div>
         </div>
-        <span class="row-right bold">${fmtEur(e.amount)}</span>
-        <i class="ti ti-chevron-right" style="color:var(--text3);font-size:14px;margin-left:4px"></i>
-      </div>`).join('');
-  }
+        <div class="group-card" id="budget-bars"></div>
+      </div>
+      <div class="group">
+        <div class="group-label">Letzte Einträge</div>
+        <div class="group-card" id="recent-list"></div>
+      </div>
+    </div>
 
-  document.getElementById('catdetail-overlay').style.display = 'block';
-  document.body.style.overflow = 'hidden';
-}
-window.openCatDetail = openCatDetail;
+    <!-- HINZUFÜGEN -->
+    <div id="sec-add" class="section">
+      <div class="page-hdr"><h1>Neue Ausgabe</h1></div>
+      <div class="form-group">
+        <div class="group-label">Betrag & Beschreibung</div>
+        <div>
+          <div class="form-row" onclick="openPad()" style="cursor:pointer">
+            <span class="form-lbl">Betrag (€)</span>
+            <input type="hidden" id="f-amount">
+            <span id="amt-display" style="flex:1;text-align:right;font-size:22px;font-weight:600;color:var(--text);padding:10px 0;letter-spacing:-.5px">0,00</span>
+            <i class="ti ti-calculator" style="color:var(--text3);font-size:18px;margin-left:6px"></i>
+          </div>
+          <div class="form-row"><span class="form-lbl">Beschreibung</span><input type="text" id="f-desc" placeholder="z.B. Wocheneinkauf" autocomplete="off" autocorrect="off" autocapitalize="sentences"></div>
+          <div class="form-row"><span class="form-lbl">Datum</span><input type="date" id="f-date"></div>
+        </div>
+      </div>
+      <div class="form-group">
+        <div class="group-label">Details</div>
+        <div>
+          <div class="form-row"><span class="form-lbl">Kategorie</span><select id="f-cat"></select></div>
+          <div class="form-row"><span class="form-lbl">Person</span><select id="f-person"></select></div>
+          <div class="form-row"><span class="form-lbl">Notiz</span><input type="text" id="f-note" placeholder="Optional" autocomplete="off" autocorrect="off"></div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="saveEntry()">Speichern</button>
+    </div>
 
-function closeCatDetail() {
-  document.getElementById('catdetail-overlay').style.display = 'none';
-  document.body.style.overflow = '';
-}
-window.closeCatDetail = closeCatDetail;
-</script>
+    <!-- EINTRÄGE -->
+    <div id="sec-entries" class="section">
+      <div class="page-hdr"><h1>Einträge</h1></div>
+      <div class="chips" id="month-chips"></div>
+      <div style="display:flex;gap:8px;padding:0 16px 12px">
+        <select id="f-cat-f" onchange="applyFilters()" style="flex:1;padding:8px 10px;font-size:15px;background:var(--surface);border:none;border-radius:var(--radius-sm);color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
+        <select id="f-per-f" onchange="applyFilters()" style="flex:1;padding:8px 10px;font-size:15px;background:var(--surface);border:none;border-radius:var(--radius-sm);color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
+      </div>
+      <div class="group" style="margin-bottom:0">
+        <div class="group-card" id="entries-list"></div>
+      </div>
+    </div>
 
+    <!-- AUSWERTUNG -->
+    <div id="sec-charts" class="section">
+      <div class="page-hdr" style="padding-bottom:0"><h1>Auswertung</h1></div>
 
-<script>
-// ---- PUSH NOTIFICATIONS ----
-// Uses local scheduling via Service Worker (no server needed)
+      <!-- DATE RANGE FILTER -->
+      <div style="margin:12px 16px 16px;background:var(--surface);border-radius:var(--radius);overflow:hidden">
+        <div style="display:flex;border-bottom:0.5px solid var(--sep)">
+          <button class="range-btn active" id="rb-m" onclick="setRange('m')">Monat</button>
+          <button class="range-btn" id="rb-3m" onclick="setRange('3m')">3 Monate</button>
+          <button class="range-btn" id="rb-6m" onclick="setRange('6m')">6 Monate</button>
+          <button class="range-btn" id="rb-y" onclick="setRange('y')">Jahr</button>
+          <button class="range-btn" id="rb-all" onclick="setRange('all')">Alles</button>
+        </div>
+        <div id="range-detail" style="padding:10px 16px;display:flex;align-items:center;justify-content:space-between">
+          <button onclick="shiftRange(-1)" style="background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0 4px;font-family:inherit" id="range-prev">‹</button>
+          <span id="range-label" style="font-size:14px;font-weight:600;color:var(--text)">Mai 2026</span>
+          <button onclick="shiftRange(1)" style="background:none;border:none;color:var(--accent);font-size:22px;cursor:pointer;padding:0 4px;font-family:inherit" id="range-next">›</button>
+        </div>
+      </div>
 
-async function toggleNotifications(enabled) {
-  if (enabled) {
-    // Request permission
-    if (!('Notification' in window) && !('serviceWorker' in navigator)) {
-      alert('Dein Browser unterstützt keine Benachrichtigungen.');
-      document.getElementById('notif-toggle').checked = false;
-      return;
-    }
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') {
-      alert('Bitte erlaube Benachrichtigungen in deinen iPhone-Einstellungen:\nEinstellungen → Safari → Benachrichtigungen → Ausgaben → Erlauben');
-      document.getElementById('notif-toggle').checked = false;
-      document.getElementById('notif-sub').textContent = 'Berechtigung verweigert';
-      return;
-    }
-    saveNotifSettings(true);
-    scheduleNotification();
-    document.getElementById('notif-time-row').style.display = 'flex';
-    document.getElementById('notif-sub').textContent = 'Aktiv · ' + getNotifTimeLabel();
-  } else {
-    saveNotifSettings(false);
-    cancelNotification();
-    document.getElementById('notif-time-row').style.display = 'none';
-    document.getElementById('notif-sub').textContent = 'Erinnert täglich ans Eintragen';
-  }
-}
-window.toggleNotifications = toggleNotifications;
+      <!-- KPI ROW -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 16px 16px" id="chart-kpis"></div>
 
-function updateNotifTime(val) {
-  try { localStorage.setItem('notif_time', val); } catch(e) {}
-  if (document.getElementById('notif-toggle').checked) {
-    scheduleNotification();
-    document.getElementById('notif-sub').textContent = 'Aktiv · ' + getNotifTimeLabel();
-  }
-}
-window.updateNotifTime = updateNotifTime;
+      <!-- TREND ALERT -->
+      <div id="trend-alert" style="margin:0 16px 16px;display:none"></div>
 
-function getNotifTime() {
-  try { return localStorage.getItem('notif_time') || '20:00'; } catch(e) { return '20:00'; }
-}
+      <!-- MONATSVERLAUF -->
+      <div class="chart-card" id="bar-card">
+        <div class="chart-hdr">
+          <span class="chart-hdr-title">Verlauf</span>
+        </div>
+        <div class="chart-body">
+          <div id="bar-leg" class="chart-legend"></div>
+          <div style="position:relative;height:210px"><canvas id="barChart" role="img" aria-label="Verlauf">Verlauf</canvas></div>
+        </div>
+      </div>
 
-function getNotifTimeLabel() {
-  const t = getNotifTime();
-  const [h, m] = t.split(':');
-  return h + ':' + m + ' Uhr';
-}
+      <!-- KATEGORIEN DONUT -->
+      <div class="chart-card">
+        <div class="chart-hdr"><span class="chart-hdr-title">Kategorien</span></div>
+        <div class="chart-body">
+          <div id="pie-leg" class="chart-legend"></div>
+          <div style="position:relative;height:220px"><canvas id="pieChart" role="img" aria-label="Kategorien">Kategorien</canvas></div>
+        </div>
+      </div>
 
-function saveNotifSettings(enabled) {
-  try {
-    localStorage.setItem('notif_enabled', enabled ? '1' : '0');
-  } catch(e) {}
-}
+      <!-- WOCHENTAG -->
+      <div class="chart-card">
+        <div class="chart-hdr"><span class="chart-hdr-title">Ausgaben nach Wochentag</span></div>
+        <div class="chart-body">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Durchschnitt pro Tag im gewählten Zeitraum</div>
+          <div style="position:relative;height:180px"><canvas id="weekChart" role="img" aria-label="Wochentage">Wochentage</canvas></div>
+        </div>
+      </div>
 
-function loadNotifSettings() {
-  try {
-    const enabled = localStorage.getItem('notif_enabled') === '1';
-    const time = getNotifTime();
-    document.getElementById('notif-toggle').checked = enabled;
-    document.getElementById('notif-time').value = time;
-    if (enabled) {
-      document.getElementById('notif-time-row').style.display = 'flex';
-      document.getElementById('notif-sub').textContent = 'Aktiv · ' + getNotifTimeLabel();
-      // Re-schedule on load (keeps alarm alive)
-      if (Notification.permission === 'granted') scheduleNotification();
-    }
-  } catch(e) {}
-}
+      <!-- TOP 5 -->
+      <div class="chart-card">
+        <div class="chart-hdr"><span class="chart-hdr-title">Top 5 Ausgaben</span></div>
+        <div class="chart-body" id="top5-list" style="padding-top:4px"></div>
+      </div>
 
-function scheduleNotification() {
-  // Calculate ms until next notification time
-  const now = new Date();
-  const [h, m] = getNotifTime().split(':').map(Number);
-  let target = new Date();
-  target.setHours(h, m, 0, 0);
-  if (target <= now) target.setDate(target.getDate() + 1); // next day if already passed
-  const delay = target - now;
+      <!-- PERSON -->
+      <div class="chart-card">
+        <div class="chart-hdr"><span class="chart-hdr-title">Vergleich Personen</span></div>
+        <div class="chart-body">
+          <div id="per-leg" class="chart-legend"></div>
+          <div style="position:relative;height:180px"><canvas id="perChart" role="img" aria-label="Personen">Personen</canvas></div>
+        </div>
+      </div>
 
-  // Clear existing timer
-  cancelNotification();
+      <!-- TAGESLINIE (nur bei Monatsansicht) -->
+      <div class="chart-card" id="line-card">
+        <div class="chart-hdr"><span class="chart-hdr-title">Tägliche Ausgaben</span></div>
+        <div class="chart-body">
+          <div style="position:relative;height:180px"><canvas id="lineChart" role="img" aria-label="Tagesverlauf">Tage</canvas></div>
+        </div>
+      </div>
 
-  // Set timer
-  const timerId = setTimeout(() => {
-    showNotification();
-    // Re-schedule for next day
-    scheduleNotification();
-  }, delay);
-
-  // Store timer ID (only works within same session; SW handles persistence)
-  window._notifTimer = timerId;
-
-  // Also tell Service Worker to schedule (for background/closed app)
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'SCHEDULE_NOTIF',
-      time: getNotifTime(),
-      delay: delay
-    });
-  }
-}
-
-function cancelNotification() {
-  if (window._notifTimer) {
-    clearTimeout(window._notifTimer);
-    window._notifTimer = null;
-  }
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({ type: 'CANCEL_NOTIF' });
-  }
-}
-
-function showNotification() {
-  if (Notification.permission !== 'granted') return;
-  const msgs = [
-    'Hast du heute alle Ausgaben eingetragen? 💶',
-    'Nicht vergessen: Heutige Ausgaben eintragen! 🧾',
-    'Zeit für deine täglichen Finanzen! 📊',
-    'Ausgaben von heute noch nicht eingetragen? ✏️',
-  ];
-  const msg = msgs[Math.floor(Math.random() * msgs.length)];
-  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-    navigator.serviceWorker.controller.postMessage({
-      type: 'SHOW_NOTIF',
-      title: 'Ausgaben App',
-      body: msg
-    });
-  } else {
-    new Notification('Ausgaben App', { body: msg, icon: '/Finanzausgaben-IM/icons/icon-192.png' });
-  }
-}
-
-// Load settings when settings tab opens
-const _origRenderSettings = window.renderSettings;
-window.renderSettings = function() {
-  if (_origRenderSettings) _origRenderSettings();
-  loadNotifSettings();
-};
-
-// Init on load
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(loadNotifSettings, 1600);
-});
-</script>
+    </div>
 
 
-<script>
-async function hardReload() {
-  // Unregister all service workers
-  if ('serviceWorker' in navigator) {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(regs.map(r => r.unregister()));
-  }
-  // Clear all caches
-  if ('caches' in window) {
-    const keys = await caches.keys();
-    await Promise.all(keys.map(k => caches.delete(k)));
-  }
-  // Hard reload
-  window.location.href = window.location.href + '?v=' + Date.now();
-}
-</script>
-</body>
-</html>
