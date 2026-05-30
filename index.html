@@ -311,6 +311,8 @@ body {
 .cseg.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
 
 input, select, textarea { font-size: 16px; }
+.top5-row { cursor:pointer; transition:opacity .1s; }
+.top5-row:active { opacity:.7; }
 </style>
 </head>
 <body>
@@ -399,16 +401,14 @@ input, select, textarea { font-size: 16px; }
     <!-- AUSWERTUNG -->
     <div id="sec-charts" class="section">
       <div class="page-hdr"><h1>Auswertung</h1></div>
-      <div class="chart-card">
-        <div class="chart-hdr">
-          <span class="chart-hdr-title">Nach Kategorie</span>
-          <select id="pie-m" onchange="renderCharts()" style="font-size:13px;background:var(--surface2);border:none;border-radius:99px;padding:4px 10px;color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
-        </div>
-        <div class="chart-body">
-          <div id="pie-leg" class="chart-legend"></div>
-          <div style="position:relative;height:230px"><canvas id="pieChart" role="img" aria-label="Kategorien">Kategorien</canvas></div>
-        </div>
-      </div>
+
+      <!-- KPI ROW -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:0 16px 20px" id="chart-kpis"></div>
+
+      <!-- TREND ALERT -->
+      <div id="trend-alert" style="margin:0 16px 16px;display:none"></div>
+
+      <!-- MONATSVERLAUF -->
       <div class="chart-card">
         <div class="chart-hdr">
           <span class="chart-hdr-title">Monatsverlauf</span>
@@ -422,13 +422,57 @@ input, select, textarea { font-size: 16px; }
           <div style="position:relative;height:210px"><canvas id="barChart" role="img" aria-label="Monatsverlauf">Monate</canvas></div>
         </div>
       </div>
+
+      <!-- KATEGORIEN DONUT -->
       <div class="chart-card">
-        <div class="chart-hdr"><span class="chart-hdr-title">Nach Person</span></div>
+        <div class="chart-hdr">
+          <span class="chart-hdr-title">Kategorien</span>
+          <select id="pie-m" onchange="renderCharts()" style="font-size:13px;background:var(--surface2);border:none;border-radius:99px;padding:4px 10px;color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
+        </div>
+        <div class="chart-body">
+          <div id="pie-leg" class="chart-legend"></div>
+          <div style="position:relative;height:220px"><canvas id="pieChart" role="img" aria-label="Kategorien">Kategorien</canvas></div>
+        </div>
+      </div>
+
+      <!-- WOCHENTAG ANALYSE -->
+      <div class="chart-card">
+        <div class="chart-hdr"><span class="chart-hdr-title">Ausgaben nach Wochentag</span></div>
+        <div class="chart-body">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:10px">Durchschnitt pro Tag (alle Einträge)</div>
+          <div style="position:relative;height:180px"><canvas id="weekChart" role="img" aria-label="Wochentage">Wochentage</canvas></div>
+        </div>
+      </div>
+
+      <!-- TOP AUSGABEN -->
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <span class="chart-hdr-title">Top 5 Ausgaben</span>
+          <select id="top-m" onchange="renderCharts()" style="font-size:13px;background:var(--surface2);border:none;border-radius:99px;padding:4px 10px;color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
+        </div>
+        <div class="chart-body" id="top5-list" style="padding-top:4px"></div>
+      </div>
+
+      <!-- PERSON VERGLEICH -->
+      <div class="chart-card">
+        <div class="chart-hdr"><span class="chart-hdr-title">Vergleich Personen</span></div>
         <div class="chart-body">
           <div id="per-leg" class="chart-legend"></div>
           <div style="position:relative;height:180px"><canvas id="perChart" role="img" aria-label="Personen">Personen</canvas></div>
         </div>
       </div>
+
+      <!-- TAGESAUSGABEN VERLAUF -->
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <span class="chart-hdr-title">Tägliche Ausgaben</span>
+          <select id="line-m" onchange="renderCharts()" style="font-size:13px;background:var(--surface2);border:none;border-radius:99px;padding:4px 10px;color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;"></select>
+        </div>
+        <div class="chart-body">
+          <div style="position:relative;height:180px"><canvas id="lineChart" role="img" aria-label="Tagesverlauf">Tage</canvas></div>
+        </div>
+      </div>
+
     </div>
 
     <!-- EINSTELLUNGEN -->
