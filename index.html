@@ -327,19 +327,6 @@ input,select,textarea{font-size:16px;}
         <div class="group-card" id="budget-inputs"></div>
       </div>
       <div class="group">
-        <div class="group-label">KI-Analyse</div>
-        <div class="group-card">
-          <div style="padding:14px 16px">
-            <div style="font-size:15px;font-weight:500;margin-bottom:8px">Anthropic API-Key</div>
-            <div style="font-size:13px;color:var(--text2);margin-bottom:10px">Für die KI-Analyse benötigst du einen kostenlosen API-Key von <strong>console.anthropic.com</strong></div>
-            <input type="password" id="api-key-input" placeholder="sk-ant-..." autocomplete="off"
-              style="width:100%;padding:10px 12px;font-size:14px;background:var(--surface2);border:none;border-radius:var(--radius-sm);color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;margin-bottom:8px;">
-            <button onclick="saveApiKey()" style="width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;">Key speichern</button>
-            <div id="api-key-status" style="font-size:12px;color:var(--text3);margin-top:6px;text-align:center"></div>
-          </div>
-        </div>
-      </div>
-      <div class="group">
         <div class="group-label">App</div>
         <div class="group-card">
           <div style="padding:12px 16px;border-bottom:.5px solid var(--sep)">
@@ -373,45 +360,58 @@ input,select,textarea{font-size:16px;}
 
     <!-- KI ANALYSE -->
     <div id="sec-ai" class="section">
-      <div class="page-hdr"><h1>KI-Analyse</h1><p style="font-size:13px;color:var(--text2);margin-top:4px">Claude analysiert eure Ausgaben & gibt Spartipps</p></div>
+      <div class="page-hdr"><h1>KI-Analyse</h1><p style="font-size:13px;color:var(--text2);margin-top:4px">Eure Daten für Claude.ai aufbereiten</p></div>
 
-      <!-- Quick Actions -->
-      <div style="padding:0 16px 16px">
-        <div style="font-size:13px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;font-weight:600">Schnellanalyse</div>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <button class="ai-quick-btn" onclick="askAI('Analysiere unsere Ausgaben des aktuellen Monats und gib uns die 3 wichtigsten Erkenntnisse.')"><i class="ti ti-chart-bar"></i> Monatsanalyse</button>
-          <button class="ai-quick-btn" onclick="askAI('Wo können wir am meisten sparen? Gib uns konkrete Spartipps basierend auf unseren Ausgaben.')"><i class="ti ti-piggy-bank"></i> Spartipps finden</button>
-          <button class="ai-quick-btn" onclick="askAI('Vergleiche die Ausgaben beider Personen und analysiere die Unterschiede.')"><i class="ti ti-users"></i> Personenvergleich</button>
-          <button class="ai-quick-btn" onclick="askAI('Analysiere unsere Ausgaben nach Kategorien und sag uns ob die Verteilung sinnvoll ist.')"><i class="ti ti-category"></i> Kategoriencheck</button>
-          <button class="ai-quick-btn" onclick="askAI('Wie haben sich unsere Ausgaben über die letzten Monate entwickelt? Gibt es Trends?')"><i class="ti ti-trending-up"></i> Trendanalyse</button>
-        </div>
-      </div>
-
-      <!-- Custom Question -->
-      <div style="margin:0 16px 16px;background:var(--surface);border-radius:var(--radius);overflow:hidden">
-        <div style="padding:14px 16px 0;font-size:15px;font-weight:600">Eigene Frage stellen</div>
-        <div style="padding:10px 16px 14px;display:flex;gap:8px">
-          <input type="text" id="ai-input" placeholder="z.B. Wann geben wir am meisten aus?" autocomplete="off"
-            style="flex:1;padding:10px 14px;font-size:15px;background:var(--surface2);border:none;border-radius:var(--radius-sm);color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;"
-            onkeydown="if(event.key==='Enter')askAICustom()">
-          <button onclick="askAICustom()" style="padding:10px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;flex-shrink:0">Fragen</button>
-        </div>
-      </div>
-
-      <!-- AI Response -->
-      <div id="ai-response-wrap" style="margin:0 16px 16px;display:none">
-        <div style="background:var(--surface);border-radius:var(--radius);overflow:hidden">
-          <div style="padding:14px 16px 0;display:flex;align-items:center;gap:8px">
-            <div style="width:28px;height:28px;background:linear-gradient(135deg,#007aff,#af52de);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-robot" style="color:#fff;font-size:14px"></i></div>
-            <span style="font-size:15px;font-weight:600">Claude</span>
-            <div id="ai-spinner" style="display:none;margin-left:auto"><div class="spin" style="width:16px;height:16px;border-width:2px"></div></div>
+      <!-- How it works -->
+      <div style="margin:0 16px 16px;background:var(--surface);border-radius:var(--radius);padding:16px">
+        <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#007aff,#af52de);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-robot" style="color:#fff;font-size:16px"></i></div>
+          <div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:4px">So funktioniert es</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.5">Wähle eine Analyse, kopiere die Daten und füge sie in Claude.ai ein – kostenlos mit deinem bestehenden Account.</div>
           </div>
-          <div id="ai-response" style="padding:12px 16px 16px;font-size:15px;line-height:1.6;color:var(--text);white-space:pre-wrap"></div>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</span> Analyse wählen & Daten kopieren</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</span> Claude.ai öffnen</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</span> Einfügen & Antwort erhalten</div>
+          </div>
         </div>
       </div>
 
-      <!-- Chat history -->
-      <div id="ai-history" style="padding:0 16px 16px;display:flex;flex-direction:column;gap:12px"></div>
+      <!-- Quick analyses -->
+      <div style="padding:0 16px;margin-bottom:8px;font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Schnellanalyse</div>
+      <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px">
+        <button class="ai-quick-btn" onclick="copyAIPrompt('monat')"><i class="ti ti-chart-bar" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Monatsanalyse</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Wichtigste Erkenntnisse diesen Monat</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="copyAIPrompt('sparen')"><i class="ti ti-piggy-bank" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Spartipps</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Konkrete Einsparpotenziale finden</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="copyAIPrompt('personen')"><i class="ti ti-users" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Personenvergleich</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Ausgaben beider Personen vergleichen</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="copyAIPrompt('kategorien')"><i class="ti ti-category" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Kategoriencheck</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Ist die Verteilung sinnvoll?</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="copyAIPrompt('trend')"><i class="ti ti-trending-up" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Trendanalyse</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Entwicklung der letzten Monate</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+      </div>
+
+      <!-- Custom question -->
+      <div style="margin:0 16px 16px;background:var(--surface);border-radius:var(--radius);overflow:hidden">
+        <div style="padding:14px 16px 0;font-size:15px;font-weight:600">Eigene Frage</div>
+        <div style="padding:10px 16px 14px;display:flex;flex-direction:column;gap:8px">
+          <input type="text" id="ai-custom-q" placeholder="z.B. An welchem Tag geben wir am meisten aus?" autocomplete="off"
+            style="width:100%;padding:10px 14px;font-size:15px;background:var(--surface2);border:none;border-radius:var(--radius-sm);color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;">
+          <button onclick="copyAIPrompt('custom')" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-copy" aria-hidden="true"></i> Daten + Frage kopieren</button>
+        </div>
+      </div>
+
+      <!-- Copy feedback -->
+      <div id="ai-copied-msg" style="margin:0 16px 16px;display:none;background:rgba(52,199,89,.1);border-radius:var(--radius);padding:14px 16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <i class="ti ti-circle-check" style="color:var(--green);font-size:22px" aria-hidden="true"></i>
+          <span style="font-size:15px;font-weight:600;color:var(--green)">Kopiert!</span>
+        </div>
+        <div style="font-size:14px;color:var(--text2);margin-bottom:12px">Deine Ausgabendaten sind in der Zwischenablage. Jetzt Claude.ai öffnen und einfügen.</div>
+        <a href="https://claude.ai" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--accent);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-size:15px;font-weight:600">
+          <i class="ti ti-external-link" aria-hidden="true"></i> Claude.ai öffnen
+        </a>
+      </div>
+
     </div>
 
   </div>
@@ -924,7 +924,6 @@ function renderSettings(){
   document.getElementById('person-tags').innerHTML=settings.persons.map(p=>`<span class="stag">${p}<button class="stag-del" onclick="delPerson('${p}')">×</button></span>`).join('');
   document.getElementById('budget-inputs').innerHTML=settings.categories.map(cat=>`<div class="bl-row" onclick="openPadFor('budget','${cat.id}','${cat.name}')"><div class="bl-dot" style="background:${cat.color}"></div><span class="bl-name">${cat.name}</span><span id="budget-display-${cat.id}" style="font-size:16px;color:${settings.budgets[cat.id]?'var(--text)':'var(--text3)'}">${settings.budgets[cat.id]?fmtEur(settings.budgets[cat.id]):'–'}</span><i class="ti ti-chevron-right" style="color:var(--text3);font-size:14px;margin-left:6px"></i></div>`).join('');
   loadNotifSettings();
-  loadApiKey();
 }
 window.renderSettings=renderSettings;
 
@@ -1109,29 +1108,6 @@ async function checkForUpdate(){
   }catch(e){if(ico){ico.style.animation='';ico.className='ti ti-alert-circle';}if(lbl)lbl.textContent='Fehler';setTimeout(()=>{if(ico)ico.className='ti ti-refresh';if(lbl)lbl.textContent='Auf Updates prüfen';},3000);}
 }
 window.checkForUpdate=checkForUpdate;
-
-function saveApiKey() {
-  const input = document.getElementById('api-key-input');
-  const key = input ? input.value.trim() : '';
-  if (!key) { document.getElementById('api-key-status').textContent = 'Bitte Key eingeben'; return; }
-  try { localStorage.setItem('anthropic_key', key); } catch(e) {}
-  document.getElementById('api-key-status').textContent = '✓ Key gespeichert';
-  setTimeout(() => { const s = document.getElementById('api-key-status'); if(s) s.textContent = ''; }, 2000);
-}
-window.saveApiKey = saveApiKey;
-
-function loadApiKey() {
-  try {
-    const key = localStorage.getItem('anthropic_key') || '';
-    const input = document.getElementById('api-key-input');
-    if (input && key) { input.value = key; document.getElementById('api-key-status').textContent = '✓ Key hinterlegt'; }
-  } catch(e) {}
-}
-
-function getApiKey() {
-  try { return localStorage.getItem('anthropic_key') || ''; } catch(e) { return ''; }
-}
-window.getApiKey = getApiKey;
 
 async function hardReload(){
   if('serviceWorker'in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.map(r=>r.unregister()));}
