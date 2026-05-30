@@ -436,7 +436,7 @@ input, select, textarea { font-size: 16px; }
       <div class="page-hdr"><h1>Einstellungen</h1></div>
 
       <div class="group">
-        <div class="group-label">Darstellung</div>
+        <div class="group-label">Darstellung & Benachrichtigungen</div>
         <div class="group-card">
           <div class="toggle-row">
             <span class="toggle-label">Dark Mode</span>
@@ -445,6 +445,22 @@ input, select, textarea { font-size: 16px; }
               <div class="toggle-track"></div>
               <div class="toggle-thumb"></div>
             </label>
+          </div>
+          <div class="toggle-row" style="border-top:0.5px solid var(--sep)">
+            <div>
+              <div class="toggle-label">Tägliche Erinnerung</div>
+              <div style="font-size:12px;color:var(--text2);margin-top:2px" id="notif-sub">Erinnert täglich ans Eintragen</div>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="notif-toggle" onchange="toggleNotifications(this.checked)">
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+          </div>
+          <div id="notif-time-row" style="display:none;padding:12px 16px;border-top:0.5px solid var(--sep);align-items:center;justify-content:space-between">
+            <span style="font-size:17px">Uhrzeit</span>
+            <input type="time" id="notif-time" value="20:00" onchange="updateNotifTime(this.value)"
+              style="font-size:17px;border:none;background:transparent;color:var(--accent);font-family:inherit;outline:none;text-align:right;-webkit-appearance:none;">
           </div>
         </div>
       </div>
@@ -1369,6 +1385,154 @@ function closeCatDetail() {
   document.body.style.overflow = '';
 }
 window.closeCatDetail = closeCatDetail;
+</script>
+
+
+<script>
+// ---- PUSH NOTIFICATIONS ----
+// Uses local scheduling via Service Worker (no server needed)
+
+async function toggleNotifications(enabled) {
+  if (enabled) {
+    // Request permission
+    if (!('Notification' in window) && !('serviceWorker' in navigator)) {
+      alert('Dein Browser unterstützt keine Benachrichtigungen.');
+      document.getElementById('notif-toggle').checked = false;
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') {
+      alert('Bitte erlaube Benachrichtigungen in deinen iPhone-Einstellungen:\nEinstellungen → Safari → Benachrichtigungen → Ausgaben → Erlauben');
+      document.getElementById('notif-toggle').checked = false;
+      document.getElementById('notif-sub').textContent = 'Berechtigung verweigert';
+      return;
+    }
+    saveNotifSettings(true);
+    scheduleNotification();
+    document.getElementById('notif-time-row').style.display = 'flex';
+    document.getElementById('notif-sub').textContent = 'Aktiv · ' + getNotifTimeLabel();
+  } else {
+    saveNotifSettings(false);
+    cancelNotification();
+    document.getElementById('notif-time-row').style.display = 'none';
+    document.getElementById('notif-sub').textContent = 'Erinnert täglich ans Eintragen';
+  }
+}
+window.toggleNotifications = toggleNotifications;
+
+function updateNotifTime(val) {
+  try { localStorage.setItem('notif_time', val); } catch(e) {}
+  if (document.getElementById('notif-toggle').checked) {
+    scheduleNotification();
+    document.getElementById('notif-sub').textContent = 'Aktiv · ' + getNotifTimeLabel();
+  }
+}
+window.updateNotifTime = updateNotifTime;
+
+function getNotifTime() {
+  try { return localStorage.getItem('notif_time') || '20:00'; } catch(e) { return '20:00'; }
+}
+
+function getNotifTimeLabel() {
+  const t = getNotifTime();
+  const [h, m] = t.split(':');
+  return h + ':' + m + ' Uhr';
+}
+
+function saveNotifSettings(enabled) {
+  try {
+    localStorage.setItem('notif_enabled', enabled ? '1' : '0');
+  } catch(e) {}
+}
+
+function loadNotifSettings() {
+  try {
+    const enabled = localStorage.getItem('notif_enabled') === '1';
+    const time = getNotifTime();
+    document.getElementById('notif-toggle').checked = enabled;
+    document.getElementById('notif-time').value = time;
+    if (enabled) {
+      document.getElementById('notif-time-row').style.display = 'flex';
+      document.getElementById('notif-sub').textContent = 'Aktiv · ' + getNotifTimeLabel();
+      // Re-schedule on load (keeps alarm alive)
+      if (Notification.permission === 'granted') scheduleNotification();
+    }
+  } catch(e) {}
+}
+
+function scheduleNotification() {
+  // Calculate ms until next notification time
+  const now = new Date();
+  const [h, m] = getNotifTime().split(':').map(Number);
+  let target = new Date();
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1); // next day if already passed
+  const delay = target - now;
+
+  // Clear existing timer
+  cancelNotification();
+
+  // Set timer
+  const timerId = setTimeout(() => {
+    showNotification();
+    // Re-schedule for next day
+    scheduleNotification();
+  }, delay);
+
+  // Store timer ID (only works within same session; SW handles persistence)
+  window._notifTimer = timerId;
+
+  // Also tell Service Worker to schedule (for background/closed app)
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SCHEDULE_NOTIF',
+      time: getNotifTime(),
+      delay: delay
+    });
+  }
+}
+
+function cancelNotification() {
+  if (window._notifTimer) {
+    clearTimeout(window._notifTimer);
+    window._notifTimer = null;
+  }
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ type: 'CANCEL_NOTIF' });
+  }
+}
+
+function showNotification() {
+  if (Notification.permission !== 'granted') return;
+  const msgs = [
+    'Hast du heute alle Ausgaben eingetragen? 💶',
+    'Nicht vergessen: Heutige Ausgaben eintragen! 🧾',
+    'Zeit für deine täglichen Finanzen! 📊',
+    'Ausgaben von heute noch nicht eingetragen? ✏️',
+  ];
+  const msg = msgs[Math.floor(Math.random() * msgs.length)];
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      type: 'SHOW_NOTIF',
+      title: 'Ausgaben App',
+      body: msg
+    });
+  } else {
+    new Notification('Ausgaben App', { body: msg, icon: '/Finanzausgaben-IM/icons/icon-192.png' });
+  }
+}
+
+// Load settings when settings tab opens
+const _origRenderSettings = window.renderSettings;
+window.renderSettings = function() {
+  if (_origRenderSettings) _origRenderSettings();
+  loadNotifSettings();
+};
+
+// Init on load
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(loadNotifSettings, 1600);
+});
 </script>
 
 </body>
