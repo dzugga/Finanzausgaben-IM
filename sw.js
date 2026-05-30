@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ausgaben-v3';
+const CACHE_NAME = 'ausgaben-2.1.5590';
 const BASE = '/Finanzausgaben-IM';
 const ASSETS = [
   BASE + '/',
@@ -17,9 +17,14 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+      .then(() => {
+        // Force all clients to reload with new version
+        return self.clients.matchAll({type: 'window'});
+      })
+      .then(clients => clients.forEach(c => c.navigate(c.url)))
   );
 });
 
