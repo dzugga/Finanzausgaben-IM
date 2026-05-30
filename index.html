@@ -358,63 +358,51 @@ input,select,textarea{font-size:16px;}
       </div>
     </div>
 
+
+
     <!-- KI ANALYSE -->
     <div id="sec-ai" class="section">
-      <div class="page-hdr"><h1>KI-Analyse</h1><p style="font-size:13px;color:var(--text2);margin-top:4px">Eure Daten für Claude.ai aufbereiten</p></div>
+      <div class="page-hdr"><h1>KI-Analyse</h1><p style="font-size:13px;color:var(--text2);margin-top:4px">Ausgabendaten für Claude.ai aufbereiten</p></div>
 
-      <!-- How it works -->
       <div style="margin:0 16px 16px;background:var(--surface);border-radius:var(--radius);padding:16px">
         <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px">
           <div style="width:32px;height:32px;background:linear-gradient(135deg,#007aff,#af52de);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ti-robot" style="color:#fff;font-size:16px"></i></div>
           <div>
             <div style="font-size:15px;font-weight:600;margin-bottom:4px">So funktioniert es</div>
-            <div style="font-size:13px;color:var(--text2);line-height:1.5">Wähle eine Analyse, kopiere die Daten und füge sie in Claude.ai ein – kostenlos mit deinem bestehenden Account.</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px">
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</span> Analyse wählen & Daten kopieren</div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</span> Claude.ai öffnen</div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)"><span style="width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</span> Einfügen & Antwort erhalten</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.5">Analyse wählen → Text erscheint → markieren → kopieren → in Claude.ai einfügen.</div>
           </div>
         </div>
       </div>
 
-      <!-- Quick analyses -->
       <div style="padding:0 16px;margin-bottom:8px;font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;font-weight:600">Schnellanalyse</div>
       <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:8px">
-        <button class="ai-quick-btn" onclick="copyAIPrompt('monat')"><i class="ti ti-chart-bar" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Monatsanalyse</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Wichtigste Erkenntnisse diesen Monat</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
-        <button class="ai-quick-btn" onclick="copyAIPrompt('sparen')"><i class="ti ti-piggy-bank" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Spartipps</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Konkrete Einsparpotenziale finden</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
-        <button class="ai-quick-btn" onclick="copyAIPrompt('personen')"><i class="ti ti-users" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Personenvergleich</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Ausgaben beider Personen vergleichen</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
-        <button class="ai-quick-btn" onclick="copyAIPrompt('kategorien')"><i class="ti ti-category" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Kategoriencheck</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Ist die Verteilung sinnvoll?</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
-        <button class="ai-quick-btn" onclick="copyAIPrompt('trend')"><i class="ti ti-trending-up" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Trendanalyse</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Entwicklung der letzten Monate</div></div><i class="ti ti-copy" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="showAIPrompt('monat')"><i class="ti ti-chart-bar" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Monatsanalyse</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Wichtigste Erkenntnisse diesen Monat</div></div><i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="showAIPrompt('sparen')"><i class="ti ti-piggy-bank" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Spartipps</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Konkrete Einsparpotenziale finden</div></div><i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="showAIPrompt('personen')"><i class="ti ti-users" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Personenvergleich</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Ausgaben beider Personen vergleichen</div></div><i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="showAIPrompt('kategorien')"><i class="ti ti-category" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Kategoriencheck</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Ist die Verteilung sinnvoll?</div></div><i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
+        <button class="ai-quick-btn" onclick="showAIPrompt('trend')"><i class="ti ti-trending-up" aria-hidden="true"></i><div style="flex:1;text-align:left"><div>Trendanalyse</div><div style="font-size:12px;color:var(--text2);margin-top:1px">Entwicklung der letzten Monate</div></div><i class="ti ti-chevron-right" style="color:var(--text3);font-size:16px" aria-hidden="true"></i></button>
       </div>
 
-      <!-- Custom question -->
       <div style="margin:0 16px 16px;background:var(--surface);border-radius:var(--radius);overflow:hidden">
         <div style="padding:14px 16px 0;font-size:15px;font-weight:600">Eigene Frage</div>
         <div style="padding:10px 16px 14px;display:flex;flex-direction:column;gap:8px">
           <input type="text" id="ai-custom-q" placeholder="z.B. An welchem Tag geben wir am meisten aus?" autocomplete="off"
-            style="width:100%;padding:10px 14px;font-size:15px;background:var(--surface2);border:none;border-radius:var(--radius-sm);color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;">
-          <button onclick="copyAIPrompt('custom')" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-copy" aria-hidden="true"></i> Daten + Frage kopieren</button>
+            style="width:100%;padding:10px 14px;font-size:16px;background:var(--surface2);border:none;border-radius:var(--radius-sm);color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;">
+          <button onclick="showAIPrompt('custom')" style="width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px"><i class="ti ti-arrow-right" aria-hidden="true"></i> Prompt erstellen</button>
         </div>
       </div>
 
-      <!-- Prompt Display -->
       <div id="ai-prompt-wrap" style="margin:0 16px 16px;display:none">
         <div style="background:var(--surface);border-radius:var(--radius);overflow:hidden">
           <div style="padding:12px 16px;background:var(--surface2);border-bottom:.5px solid var(--sep);display:flex;align-items:center;justify-content:space-between">
-            <div style="display:flex;align-items:center;gap:8px">
-              <i class="ti ti-clipboard-text" style="color:var(--accent);font-size:18px" aria-hidden="true"></i>
-              <span style="font-size:14px;font-weight:600">Alles markieren &amp; kopieren</span>
-            </div>
-            <button onclick="selectAllPrompt()" style="padding:6px 12px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">Alles markieren</button>
+            <span style="font-size:14px;font-weight:600">Fertig – jetzt kopieren</span>
+            <button onclick="selectAllPrompt()" style="padding:6px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer">Alles markieren</button>
           </div>
           <textarea id="ai-prompt-text" readonly
-            style="width:100%;height:200px;padding:12px 16px;font-size:13px;font-family:var(--font-mono,monospace);line-height:1.5;background:var(--surface);border:none;color:var(--text);resize:none;outline:none;-webkit-appearance:none;"></textarea>
+            style="width:100%;height:220px;padding:12px 16px;font-size:13px;line-height:1.5;background:var(--surface);border:none;color:var(--text);resize:none;outline:none;-webkit-appearance:none;font-family:inherit;"></textarea>
           <div style="padding:12px 16px;border-top:.5px solid var(--sep)">
             <div style="font-size:13px;color:var(--text2);margin-bottom:10px">Text markieren → kopieren → in Claude.ai einfügen</div>
-            <a href="https://claude.ai/new" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--accent);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-size:15px;font-weight:600">
+            <a href="https://claude.ai/new" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:var(--accent);color:#fff;border-radius:var(--radius-sm);text-decoration:none;font-size:15px;font-weight:600">
               <i class="ti ti-external-link" aria-hidden="true"></i> Claude.ai öffnen
             </a>
           </div>
@@ -606,6 +594,7 @@ window.goTab=(name,title,btn)=>{
   else if(name==='charts')renderCharts();
   else if(name==='settings')renderSettings();
   else if(name==='chat'){initChat();startChatListener();}
+  else if(name==='ai'){}
 };
 
 // ---- CHAT (in module scope with firebase access) ----
@@ -1135,81 +1124,6 @@ setTimeout(loadNotifSettings,1800);
 
 window.askAICustom = window.askAICustom || function(){};
 
-// KI-Analyse: Prompt erstellen und anzeigen
-function buildFC() {
-  var ents = window._entries || [];
-  var sett = window._settings || {};
-  var now = new Date();
-  var m = now.getMonth(), y = now.getFullYear();
-  var mE = ents.filter(function(e){var d=new Date(e.date);return d.getMonth()===m&&d.getFullYear()===y;});
-  var mT = mE.reduce(function(s,e){return s+e.amount;},0);
-  var byCat = {};
-  mE.forEach(function(e){byCat[e.category]=(byCat[e.category]||0)+e.amount;});
-  var catTxt = Object.entries(byCat).sort(function(a,b){return b[1]-a[1];}).map(function(x){
-    var cat=(sett.categories||[]).find(function(c){return c.id===x[0];})||{name:x[0]};
-    var bud=sett.budgets&&sett.budgets[x[0]];
-    return cat.name+': '+x[1].toFixed(2)+' EUR'+(bud?' (Budget '+bud+' EUR, '+Math.round(x[1]/bud*100)+'%)':'');
-  }).join('; ');
-  var byP = {};
-  ents.forEach(function(e){byP[e.person]=(byP[e.person]||0)+e.amount;});
-  var perTxt = Object.entries(byP).map(function(x){return x[0]+': '+x[1].toFixed(2)+' EUR';}).join('; ');
-  var top5 = mE.slice().sort(function(a,b){return b.amount-a.amount;}).slice(0,5).map(function(e){return e.desc+' '+e.amount.toFixed(2)+' EUR';}).join(', ');
-  var last3 = [];
-  for(var i=0;i<3;i++){
-    var d=new Date(y,m-i,1);var key=d.toISOString().slice(0,7);
-    var mes=ents.filter(function(e){return e.date.startsWith(key);});
-    last3.push(d.toLocaleDateString('de-DE',{month:'long',year:'numeric'})+': '+mes.reduce(function(s,e){return s+e.amount;},0).toFixed(2)+' EUR ('+mes.length+' Buchungen)');
-  }
-  return [
-    '=== HAUSHALTSDATEN ===',
-    'Monat: '+new Date(y,m,1).toLocaleDateString('de-DE',{month:'long',year:'numeric'}),
-    'Gesamtausgaben: '+mT.toFixed(2)+' EUR ('+mE.length+' Buchungen)',
-    'Kategorien: '+catTxt,
-    'Top 5: '+top5,
-    'Verlauf: '+last3.join(' | '),
-    'Personen: '+perTxt,
-    'Eintraege gesamt: '+ents.length,
-    '======'
-  ].join('\n');
-}
-
-var aiQ = {
-  monat: 'Analysiere unsere Haushaltsausgaben diesen Monat. Nenne die 3 wichtigsten Erkenntnisse.',
-  sparen: 'Wo koennen wir am meisten sparen? Gib 3-5 konkrete Spartipps.',
-  personen: 'Vergleiche die Ausgaben beider Personen im Haushalt.',
-  kategorien: 'Ist unsere Ausgabenverteilung nach Kategorien sinnvoll?',
-  trend: 'Wie haben sich unsere Ausgaben ueber die letzten Monate entwickelt?'
-};
-
-function showAIPrompt(type) {
-  var ctx = buildFC();
-  var q = '';
-  if(type === 'custom') {
-    var inp = document.getElementById('ai-custom-q');
-    if(inp) q = inp.value.trim();
-    if(!q) { if(inp) inp.focus(); return; }
-  } else {
-    q = aiQ[type] || '';
-  }
-  var txt = ctx + '\n\nFrage: ' + q + '\n\nBitte auf Deutsch antworten mit konkreten Empfehlungen.';
-  var wrap = document.getElementById('ai-prompt-wrap');
-  var ta = document.getElementById('ai-prompt-text');
-  if(!wrap || !ta) { alert('Fehler: Element nicht gefunden'); return; }
-  ta.value = txt;
-  wrap.style.display = 'block';
-  wrap.scrollIntoView({behavior:'smooth', block:'start'});
-  setTimeout(function(){ ta.focus(); ta.select(); try{ta.setSelectionRange(0,99999);}catch(e){} }, 500);
-}
-window.copyAIPrompt = showAIPrompt;
-window.showAIPrompt = showAIPrompt;
-
-function selectAllPrompt() {
-  var ta = document.getElementById('ai-prompt-text');
-  if(!ta) return;
-  ta.focus(); ta.select();
-  try{ta.setSelectionRange(0,99999);}catch(e){}
-}
-window.selectAllPrompt = selectAllPrompt;
 
 </script>
 </body>
