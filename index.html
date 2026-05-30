@@ -287,6 +287,16 @@ input,select,textarea{font-size:16px;}
     <div id="sec-settings" class="section">
       <div class="page-hdr"><h1>Einstellungen</h1></div>
       <div class="group">
+        <div class="group-label">Mein Profil</div>
+        <div class="group-card">
+          <div style="padding:14px 16px">
+            <div style="font-size:15px;font-weight:500;margin-bottom:8px">Ich bin</div>
+            <div style="font-size:13px;color:var(--text2);margin-bottom:10px">Wähle deinen Namen – er wird automatisch bei Ausgaben und im Chat vorausgewählt.</div>
+            <div id="my-name-list" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+        </div>
+      </div>
+      <div class="group">
         <div class="group-label">Darstellung &amp; Benachrichtigungen</div>
         <div class="group-card">
           <div class="toggle-row">
@@ -605,8 +615,10 @@ function initChat() {
   const sel = document.getElementById('chat-sender');
   if (!sel) return;
   const persons = settings.persons || ['Ich','Partner/in'];
+  // Prefer saved myName, then chat_sender, then first person
+  const myName = (()=>{try{return localStorage.getItem('my_name');}catch(e){return null;}})();
   const saved = (()=>{try{return localStorage.getItem('chat_sender');}catch(e){return null;}})();
-  const current = saved && persons.includes(saved) ? saved : persons[0];
+  const current = (myName && persons.includes(myName)) ? myName : (saved && persons.includes(saved)) ? saved : persons[0];
   sel.innerHTML = persons.map(p=>`<option value="${p}"${p===current?' selected':''}>${p}</option>`).join('');
   sel.onchange = () => { try{localStorage.setItem('chat_sender', sel.value);}catch(e){} };
 }
@@ -733,6 +745,8 @@ function initAddForm(){
   document.getElementById('f-cat').innerHTML=settings.categories.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
   document.getElementById('f-person').innerHTML=settings.persons.map(p=>`<option value="${p}">${p}</option>`).join('');
   if(!document.getElementById('f-date').value) document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+  // Apply saved name as default
+  if(window.applyMyName) window.applyMyName();
 }
 window.initAddForm=initAddForm;
 
@@ -923,6 +937,7 @@ function renderSettings(){
   document.getElementById('person-tags').innerHTML=settings.persons.map(p=>`<span class="stag">${p}<button class="stag-del" onclick="delPerson('${p}')">×</button></span>`).join('');
   document.getElementById('budget-inputs').innerHTML=settings.categories.map(cat=>`<div class="bl-row" onclick="openPadFor('budget','${cat.id}','${cat.name}')"><div class="bl-dot" style="background:${cat.color}"></div><span class="bl-name">${cat.name}</span><span id="budget-display-${cat.id}" style="font-size:16px;color:${settings.budgets[cat.id]?'var(--text)':'var(--text3)'}">${settings.budgets[cat.id]?fmtEur(settings.budgets[cat.id]):'–'}</span><i class="ti ti-chevron-right" style="color:var(--text3);font-size:14px;margin-left:6px"></i></div>`).join('');
   loadNotifSettings();
+  renderMyNameSelector();
 }
 window.renderSettings=renderSettings;
 
@@ -1191,11 +1206,7 @@ function showAIPrompt(type) {
   } else {
     q = aiQ[type] || '';
   }
-  var txt = ctx + '
-
-Frage: ' + q + '
-
-Bitte auf Deutsch antworten mit konkreten Empfehlungen.';
+  var txt = ctx + '\n\nFrage: ' + q + '\n\nBitte auf Deutsch antworten mit konkreten Empfehlungen.';
   var wrap = document.getElementById('ai-prompt-wrap');
   var ta = document.getElementById('ai-prompt-text');
   if(!wrap) { alert('Wrap nicht gefunden'); return; }
@@ -1211,6 +1222,63 @@ Bitte auf Deutsch antworten mit konkreten Empfehlungen.';
 }
 window.showAIPrompt = showAIPrompt;
 window.copyAIPrompt = showAIPrompt;
+
+// ---- MY NAME / PROFIL ----
+function getMyName() {
+  try { return localStorage.getItem('my_name') || ''; } catch(e) { return ''; }
+}
+function saveMyName(name) {
+  try { localStorage.setItem('my_name', name); } catch(e) {}
+  // Update add form and chat sender to reflect new default
+  applyMyName();
+}
+function applyMyName() {
+  var name = getMyName();
+  if(!name) return;
+  // Set default in add form person select
+  var fPerson = document.getElementById('f-person');
+  if(fPerson) {
+    for(var i=0;i<fPerson.options.length;i++){
+      if(fPerson.options[i].value === name){ fPerson.selectedIndex=i; break; }
+    }
+  }
+  // Set default in chat sender select
+  var chatSender = document.getElementById('chat-sender');
+  if(chatSender) {
+    for(var i=0;i<chatSender.options.length;i++){
+      if(chatSender.options[i].value === name){ chatSender.selectedIndex=i; break; }
+    }
+  }
+}
+window.applyMyName = applyMyName;
+
+function renderMyNameSelector() {
+  var sett = window._settings || {};
+  var persons = sett.persons || [];
+  var current = getMyName();
+  var el = document.getElementById('my-name-list');
+  if(!el) return;
+  el.innerHTML = '';
+  if(!persons.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3)">Keine Personen angelegt.</div>';
+    return;
+  }
+  persons.forEach(function(p) {
+    var isActive = p === current;
+    var btn = document.createElement('button');
+    btn.style.cssText = 'width:100%;padding:12px 16px;background:' + (isActive ? 'var(--accent)' : 'var(--surface2)') + ';color:' + (isActive ? '#fff' : 'var(--text)') + ';border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:' + (isActive ? '600' : '400') + ';font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;';
+    btn.innerHTML = '<i class="ti ti-' + (isActive ? 'circle-check' : 'user') + '" style="font-size:20px"></i><span>' + p + '</span>' + (isActive ? '<span style="margin-left:auto;font-size:12px;opacity:.8">Aktiv</span>' : '');
+    btn.addEventListener('click', function(){ selectMyName(p); });
+    el.appendChild(btn);
+  });
+}
+window.renderMyNameSelector = renderMyNameSelector;
+
+function selectMyName(name) {
+  saveMyName(name);
+  renderMyNameSelector();
+}
+window.selectMyName = selectMyName;
 
 function selectAllPrompt() {
   var ta = document.getElementById('ai-prompt-text');
@@ -1448,6 +1516,71 @@ function showAIPrompt(type) {
 }
 window.showAIPrompt = showAIPrompt;
 window.copyAIPrompt = showAIPrompt;
+
+// ---- MY NAME / PROFIL ----
+function getMyName() {
+  try { return localStorage.getItem('my_name') || ''; } catch(e) { return ''; }
+}
+function saveMyName(name) {
+  try { localStorage.setItem('my_name', name); } catch(e) {}
+  // Update add form and chat sender to reflect new default
+  applyMyName();
+}
+function applyMyName() {
+  var name = getMyName();
+  if(!name) return;
+  // Set default in add form person select
+  var fPerson = document.getElementById('f-person');
+  if(fPerson) {
+    for(var i=0;i<fPerson.options.length;i++){
+      if(fPerson.options[i].value === name){ fPerson.selectedIndex=i; break; }
+    }
+  }
+  // Set default in chat sender select
+  var chatSender = document.getElementById('chat-sender');
+  if(chatSender) {
+    for(var i=0;i<chatSender.options.length;i++){
+      if(chatSender.options[i].value === name){ chatSender.selectedIndex=i; break; }
+    }
+  }
+}
+window.applyMyName = applyMyName;
+
+function renderMyNameSelector() {
+  var sett = window._settings || {};
+  var persons = sett.persons || [];
+  var current = getMyName();
+  var el = document.getElementById('my-name-list');
+  if(!el) return;
+  if(!persons.length) {
+    el.innerHTML = '<div style="font-size:13px;color:var(--text3)">Noch keine Personen angelegt. Bitte unter Personen hinzufügen.</div>';
+    return;
+  }
+  el.innerHTML = persons.map(function(p) {
+    var isActive = p === current;
+    return '<button onclick="selectMyName('' + p + '')" style="width:100%;padding:12px 16px;background:' + (isActive ? 'var(--accent)' : 'var(--surface2)') + ';color:' + (isActive ? '#fff' : 'var(--text)') + ';border:none;border-radius:var(--radius-sm);font-size:15px;font-weight:' + (isActive ? '600' : '400') + ';font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:10px;text-align:left;">'
+      + '<i class="ti ti-' + (isActive ? 'circle-check' : 'user') + '" style="font-size:20px"></i>'
+      + p
+      + (isActive ? '<span style="margin-left:auto;font-size:12px;opacity:.8">Aktiv</span>' : '')
+      + '</button>';
+  }).join('');
+}
+window.renderMyNameSelector = renderMyNameSelector;
+
+function selectMyName(name) {
+  saveMyName(name);
+  renderMyNameSelector();
+  // Show confirmation
+  var el = document.getElementById('my-name-list');
+  if(el) {
+    var msg = document.createElement('div');
+    msg.style.cssText = 'font-size:13px;color:var(--green);padding:6px 4px;font-weight:500;';
+    msg.textContent = '✓ ' + name + ' als Standard gesetzt';
+    el.appendChild(msg);
+    setTimeout(function(){ if(msg.parentNode) msg.parentNode.removeChild(msg); }, 2000);
+  }
+}
+window.selectMyName = selectMyName;
 
 function selectAllPrompt() {
   var ta = document.getElementById('ai-prompt-text');
