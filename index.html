@@ -688,15 +688,11 @@ window.sendChat = async function() {
   // Reset send button
   const sendBtn = document.querySelector('.chat-send-btn');
   if(sendBtn) { sendBtn.style.background='var(--accent)'; sendBtn.innerHTML='<i class="ti ti-send" style="color:#fff;font-size:18px"></i>'; }
-  if (chatEditId) {
-    // Edit mode
-    const eid = chatEditId;
-    chatEditId = null;
+  if (window._chatEditId) {
+    const eid = window._chatEditId;
+    window._chatEditId = null;
     try {
-      const {doc: fdoc, updateDoc} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
-      const {getApps} = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
-      const fdb = (await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js")).getFirestore(getApps()[0]);
-      await updateDoc(fdoc(fdb,'chat',eid), {text, edited:true});
+      await updateDoc(doc(db,'chat',eid), {text, edited:true});
     } catch(e) { console.error('Edit error:', e); if(input) input.value=text; }
   } else {
     try {
@@ -1029,6 +1025,14 @@ window.openCatDetail=catId=>{
   document.getElementById('catdetail-overlay').style.display='block';document.body.style.overflow='hidden';
 };
 window.closeCatDetail=()=>{document.getElementById('catdetail-overlay').style.display='none';document.body.style.overflow='';};
+
+// Chat helpers exposed to plain script
+window._deleteChat = async function(id) {
+  try { await deleteDoc(doc(db,'chat',id)); } catch(e) { console.error('Delete error:',e); }
+};
+window._updateChat = async function(id, text) {
+  try { await updateDoc(doc(db,'chat',id), {text, edited:true}); } catch(e) { console.error('Update error:',e); }
+};
 </script>
 
 <script>
@@ -1350,7 +1354,7 @@ function startChatEdit() {
   if(input) {
     input.value = chatMenuText;
     input.focus();
-    chatEditId = chatMenuId;
+    window._chatEditId = chatMenuId;
     // Change send button to show edit mode
     var sendBtn = document.querySelector('.chat-send-btn');
     if(sendBtn) { sendBtn.style.background='var(--orange)'; sendBtn.innerHTML='<i class="ti ti-check" style="color:#fff;font-size:18px"></i>'; }
@@ -1363,12 +1367,9 @@ function deleteChatMsg() {
   if(!chatMenuId) return;
   var mid = chatMenuId;
   closeChatMenu();
-  import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(function(m) {
-    return import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js").then(function(am) {
-      var fdb = m.getFirestore(am.getApps()[0]);
-      return m.deleteDoc(m.doc(fdb,'chat',mid));
-    });
-  }).catch(function(e){ console.error('Delete error:',e); });
+  if(window._deleteChat) {
+    window._deleteChat(mid);
+  }
 }
 window.deleteChatMsg = deleteChatMsg;
 
