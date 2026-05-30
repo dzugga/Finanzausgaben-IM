@@ -1293,6 +1293,109 @@ function askAICustom() {
   askAI(q);
 }
 window.askAICustom = askAICustom;
+
+// ---- KI ANALYSE (copy-to-claude.ai) ----
+function buildFinanceContext() {
+  const ents = window._entries || [];
+  const sett = window._settings || {};
+  const now = new Date();
+  const m = now.getMonth(), y = now.getFullYear();
+  const mE = ents.filter(e=>{const d=new Date(e.date);return d.getMonth()===m&&d.getFullYear()===y;});
+  const mTotal = mE.reduce((s,e)=>s+e.amount,0);
+  const last3 = [];
+  for(let i=0;i<3;i++){
+    const d=new Date(y,m-i,1);const key=d.toISOString().slice(0,7);
+    const mes=ents.filter(e=>e.date.startsWith(key));
+    last3.push({label:d.toLocaleDateString('de-DE',{month:'long',year:'numeric'}),total:mes.reduce((s,e)=>s+e.amount,0),count:mes.length});
+  }
+  const byCat={};
+  for(const e of mE) byCat[e.category]=(byCat[e.category]||0)+e.amount;
+  const catLines=Object.entries(byCat).sort((a,b)=>b[1]-a[1]).map(([id,amt])=>{
+    const cat=(sett.categories||[]).find(c=>c.id===id)||{name:id};
+    const bud=sett.budgets?.[id];
+    return '  - '+cat.name+': '+amt.toFixed(2)+' EUR'+(bud?' (Budget '+bud+' EUR, '+Math.round(amt/bud*100)+'% ausgeschoepft)':'');
+  }).join('
+');
+  const byPer={};
+  for(const e of ents) byPer[e.person]=(byPer[e.person]||0)+e.amount;
+  const perLines=Object.entries(byPer).map(([p,a])=>'  - '+p+': '+a.toFixed(2)+' EUR').join('
+');
+  const top5=[...mE].sort((a,b)=>b.amount-a.amount).slice(0,5).map(e=>'  - '+e.desc+': '+e.amount.toFixed(2)+' EUR').join('
+');
+  return '=== HAUSHALTSDATEN ===
+'
+    +'Monat: '+new Date(y,m,1).toLocaleDateString('de-DE',{month:'long',year:'numeric'})+'
+'
+    +'Gesamtausgaben: '+mTotal.toFixed(2)+' EUR ('+mE.length+' Buchungen)
+
+'
+    +'Nach Kategorie:
+'+(catLines||'  Keine Daten')+'
+
+'
+    +'Top 5:
+'+(top5||'  Keine Daten')+'
+
+'
+    +'Letzte 3 Monate:
+'+last3.map(x=>'  - '+x.label+': '+x.total.toFixed(2)+' EUR ('+x.count+' Buchungen)').join('
+')+'
+
+'
+    +'Nach Person:
+'+(perLines||'  Keine Daten')+'
+
+'
+    +'Eintraege gesamt: '+ents.length+'
+'
+    +'Budgets: '+Object.keys(sett.budgets||{}).map(id=>{const cat=(sett.categories||[]).find(c=>c.id===id);return cat?cat.name+' '+sett.budgets[id]+'EUR/Mo':id;}).join(', ')+'
+'
+    +'======================';
+}
+
+const aiQuestions = {
+  monat: 'Analysiere unsere Haushaltsausgaben. Was sind die 3 wichtigsten Erkenntnisse? Wo geben wir am meisten aus?',
+  sparen: 'Wo koennen wir sparen? Gib 3-5 konkrete Spartipps basierend auf unseren Ausgaben.',
+  personen: 'Vergleiche die Ausgaben beider Personen. Wer gibt wofuer mehr aus?',
+  kategorien: 'Analysiere die Ausgabenverteilung nach Kategorien. Was faellt auf?',
+  trend: 'Wie haben sich unsere Ausgaben entwickelt? Gibt es Trends?'
+};
+
+function copyAIPrompt(type) {
+  const context = buildFinanceContext();
+  let question = '';
+  if(type === 'custom') {
+    const inp = document.getElementById('ai-custom-q');
+    question = inp ? inp.value.trim() : '';
+    if(!question){ if(inp) inp.focus(); return; }
+  } else {
+    question = aiQuestions[type] || '';
+  }
+  const prompt = context + '
+
+Frage: ' + question + '
+
+Bitte antworte auf Deutsch mit konkreten Empfehlungen.';
+  const wrap = document.getElementById('ai-prompt-wrap');
+  const ta = document.getElementById('ai-prompt-text');
+  if(wrap && ta) {
+    ta.value = prompt;
+    wrap.style.display = 'block';
+    wrap.scrollIntoView({behavior:'smooth', block:'start'});
+    setTimeout(function(){ selectAllPrompt(); }, 500);
+  }
+  try { navigator.clipboard.writeText(prompt).catch(function(){}); } catch(e) {}
+}
+window.copyAIPrompt = copyAIPrompt;
+
+function selectAllPrompt() {
+  const ta = document.getElementById('ai-prompt-text');
+  if(!ta) return;
+  ta.focus();
+  ta.select();
+  try { ta.setSelectionRange(0, ta.value.length); } catch(e) {}
+}
+window.selectAllPrompt = selectAllPrompt;
 </script>
 </body>
 </html>
