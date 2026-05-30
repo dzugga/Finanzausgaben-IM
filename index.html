@@ -432,7 +432,12 @@ input, select, textarea { font-size: 16px; }
       <!-- MONATSVERLAUF -->
       <div class="chart-card" id="bar-card">
         <div class="chart-hdr">
-          <span class="chart-hdr-title">Verlauf</span>
+          <span class="chart-hdr-title">Monatsverlauf</span>
+          <div class="card-seg">
+            <button class="cseg active" id="cp-6" onclick="setBarPeriod(6)">6M</button>
+            <button class="cseg" id="cp-12" onclick="setBarPeriod(12)">12M</button>
+            <button class="cseg" id="cp-24" onclick="setBarPeriod(24)">24M</button>
+          </div>
         </div>
         <div class="chart-body">
           <div id="bar-leg" class="chart-legend"></div>
@@ -487,6 +492,16 @@ input, select, textarea { font-size: 16px; }
 let chartRange = 'm';       // 'm','3m','6m','y','all'
 let chartRangeOffset = 0;  // months back from today (for m/3m/6m)
 let chartYearOffset = 0;   // years back (for y)
+let barPeriod = 6;          // months to show in bar chart
+
+window.setBarPeriod = function(p) {
+  barPeriod = p;
+  ['6','12','24'].forEach(x => {
+    const el = document.getElementById('cp-'+x);
+    if(el) el.classList.toggle('active', parseInt(x)===p);
+  });
+  renderCharts();
+};
 
 function getRangeEntries() {
   const now = new Date();
@@ -626,11 +641,13 @@ function renderCharts() {
     // Monthly bar chart
     if(barCard) barCard.style.display='block';
     if(lineCard) lineCard.style.display='none';
-    // Build months in range
+    // Build months: always use barPeriod months ending at the selected range end
+    const rangeEnd = new Date(to.slice(0,7)+'-02');
     const rangeMs=[];
-    let cur=new Date(from.slice(0,7)+'-02');
-    const endM=new Date(to.slice(0,7)+'-02');
-    while(cur<=endM){rangeMs.push(cur.toISOString().slice(0,7));cur=new Date(cur.getFullYear(),cur.getMonth()+1,2);}
+    for(let i=barPeriod-1;i>=0;i--){
+      const d=new Date(rangeEnd.getFullYear(),rangeEnd.getMonth()-i,2);
+      rangeMs.push(d.toISOString().slice(0,7));
+    }
     const bL=rangeMs.map(m=>new Date(m+'-02').toLocaleDateString('de-DE',{month:'short',year:'2-digit'}));
     const topCats=settings.categories.slice(0,5);
     const bDs=topCats.map(cat=>({label:cat.name,data:rangeMs.map(m=>entries.filter(e=>e.date.startsWith(m)&&e.category===cat.id).reduce((s,e)=>s+e.amount,0)),backgroundColor:cat.color+'99',borderWidth:0,borderRadius:2}));
@@ -1124,7 +1141,12 @@ input, select, textarea { font-size: 16px; }
       <!-- MONATSVERLAUF -->
       <div class="chart-card" id="bar-card">
         <div class="chart-hdr">
-          <span class="chart-hdr-title">Verlauf</span>
+          <span class="chart-hdr-title">Monatsverlauf</span>
+          <div class="card-seg">
+            <button class="cseg active" id="cp-6" onclick="setBarPeriod(6)">6M</button>
+            <button class="cseg" id="cp-12" onclick="setBarPeriod(12)">12M</button>
+            <button class="cseg" id="cp-24" onclick="setBarPeriod(24)">24M</button>
+          </div>
         </div>
         <div class="chart-body">
           <div id="bar-leg" class="chart-legend"></div>
