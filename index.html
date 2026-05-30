@@ -660,17 +660,16 @@ function renderChatMessages(msgs) {
   container.innerHTML = msgs.map(m => {
     const isMe = m.sender === me;
     const time = m.ts ? new Date(m.ts).toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit'}) : '';
-    return `<div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'};margin-bottom:4px">
-      ${!isMe?`<div class="chat-name">${m.sender||'?'}</div>`:''}
-      <div class="chat-bubble ${isMe?'mine':'theirs'}" 
-        data-id="${m.id}" data-text="${m.text.replace(/"/g,'&quot;')}" data-mine="${isMe}"
-        ontouchstart="chatBubbleTouchStart(event,this)"
-        ontouchend="chatBubbleTouchEnd(event,this)"
-        ontouchmove="chatBubbleTouchMove()"
-        onclick="chatBubbleClick(event,this)"
-        style="cursor:pointer;user-select:none;-webkit-user-select:none"
-      >${m.text}</div>
-      <div class="chat-time" style="font-size:11px;opacity:.5;margin-top:2px">${time}</div>
+    const esc = m.text.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+    const menuBtn = `<button onclick="openChatMenu('${m.id}','${esc}',${isMe})" style="background:none;border:none;color:${isMe?'rgba(255,255,255,.6)':'var(--text3)'};font-size:16px;padding:2px 4px;cursor:pointer;line-height:1;flex-shrink:0;font-family:inherit;">•••</button>`;
+    return `<div style="display:flex;align-items:flex-end;gap:4px;margin-bottom:4px;justify-content:${isMe?'flex-end':'flex-start'}">
+      ${!isMe?menuBtn:''}
+      <div style="display:flex;flex-direction:column;align-items:${isMe?'flex-end':'flex-start'}">
+        ${!isMe?`<div class="chat-name">${m.sender||'?'}</div>`:''}
+        <div class="chat-bubble ${isMe?'mine':'theirs'}">${m.text}${m.edited?'<span style="font-size:10px;opacity:.6;margin-left:4px">bearbeitet</span>':''}</div>
+        <div class="chat-time" style="font-size:11px;opacity:.5;margin-top:2px">${time}</div>
+      </div>
+      ${isMe?menuBtn:''}
     </div>`;
   }).join('');
   setTimeout(()=>{container.scrollTop=container.scrollHeight;}, 80);
@@ -1311,26 +1310,12 @@ window.selectMyName = selectMyName;
 var chatMenuId = null;
 var chatMenuText = null;
 var chatMenuIsMine = false;
-var chatPressTimer = null;
-var chatTouchMoved = false;
+// Touch handlers removed - using button instead
 
-function chatBubbleTouchStart(e, el) {
-  chatTouchMoved = false;
-  chatPressTimer = setTimeout(function() {
-    if(!chatTouchMoved) openChatMenu(el);
-  }, 500);
-}
-function chatBubbleTouchMove() { chatTouchMoved = true; if(chatPressTimer) clearTimeout(chatPressTimer); }
-function chatBubbleTouchEnd(e, el) { if(chatPressTimer) clearTimeout(chatPressTimer); }
-function chatBubbleClick(e, el) {
-  // On desktop: single click opens menu; on mobile handled by long-press
-  if(!('ontouchstart' in window)) openChatMenu(el);
-}
-
-function openChatMenu(el) {
-  chatMenuId = el.getAttribute('data-id');
-  chatMenuText = el.getAttribute('data-text').replace(/&quot;/g, '"');
-  chatMenuIsMine = el.getAttribute('data-mine') === 'true';
+function openChatMenu(id, text, isMine) {
+  chatMenuId = id;
+  chatMenuText = text.replace(/&quot;/g, '"');
+  chatMenuIsMine = isMine === true || isMine === 'true';
   var preview = document.getElementById('chat-preview-text');
   if(preview) preview.textContent = chatMenuText;
   var editBtn = document.getElementById('chat-edit-btn');
