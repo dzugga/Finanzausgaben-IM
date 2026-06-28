@@ -353,10 +353,6 @@ input,select,textarea{font-size:16px;}
       <div class="version-tag">Ausgaben App v2.1 · Firebase Sync</div>
     </div>
 
-
-    <!-- CHAT -->
-    <div id="sec-chat" class="section chat-section">
-      <div class="page-hdr" style="padding-bottom:8px;flex-shrink:0"><h1>Chat</h1><p style="font-size:13px;color:var(--text2);margin-top:4px">Echtzeit-Nachrichten mit deiner/deinem Partner/in</p></div>
       <div id="chat-messages" style="flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 12px;display:flex;flex-direction:column;gap:8px"></div>
       <div class="chat-input-bar">
         <select id="chat-sender" style="padding:9px 10px;font-size:14px;background:var(--surface2);border:none;border-radius:var(--radius-sm);color:var(--text);font-family:inherit;-webkit-appearance:none;outline:none;flex-shrink:0"></select>
@@ -428,7 +424,6 @@ input,select,textarea{font-size:16px;}
     <button class="tab" onclick="goTab('add','Ausgabe',this)"><i class="ti ti-receipt"></i><span>Ausgabe</span></button>
     <button class="tab" onclick="goTab('entries','Einträge',this)"><i class="ti ti-list"></i><span>Einträge</span></button>
     <button class="tab" onclick="goTab('charts','Auswertung',this)"><i class="ti ti-chart-pie-2"></i><span>Charts</span></button>
-    <button class="tab" onclick="goTab('chat','Chat',this)"><i class="ti ti-message-2"></i><span>Chat</span></button>
     <button class="tab" onclick="goTab('ai','KI-Analyse',this)"><i class="ti ti-robot"></i><span>KI</span></button>
     <button class="tab" onclick="goTab('settings','Einstellungen',this)"><i class="ti ti-settings"></i><span>Mehr</span></button>
   </div>
@@ -604,49 +599,11 @@ window.goTab=(name,title,btn)=>{
   else if(name==='entries')renderEntries();
   else if(name==='charts')renderCharts();
   else if(name==='settings')renderSettings();
-  else if(name==='chat'){initChat();startChatListener();}
   else if(name==='ai'){}
 };
 
 // ---- CHAT (in module scope with firebase access) ----
 let chatUnsub = null;
-
-function initChat() {
-  const sel = document.getElementById('chat-sender');
-  if (!sel) return;
-  const persons = settings.persons || ['Ich','Partner/in'];
-  // Prefer saved myName, then chat_sender, then first person
-  const myName = (()=>{try{return localStorage.getItem('my_name');}catch(e){return null;}})();
-  const saved = (()=>{try{return localStorage.getItem('chat_sender');}catch(e){return null;}})();
-  const current = (myName && persons.includes(myName)) ? myName : (saved && persons.includes(saved)) ? saved : persons[0];
-  sel.innerHTML = persons.map(p=>`<option value="${p}"${p===current?' selected':''}>${p}</option>`).join('');
-  sel.onchange = () => { try{localStorage.setItem('chat_sender', sel.value);}catch(e){} };
-}
-
-function startChatListener() {
-  if (chatUnsub) return;
-  try {
-    const q = window._chatQuery || (() => {
-      const {query, collection: col, orderBy, limit} = {
-        query: (c,...args) => {let r=c;return r;},
-        collection: (d,n) => null,
-        orderBy: ()=>null,
-        limit: ()=>null
-      };
-      return null;
-    })();
-    // Use the already-imported firebase from module scope
-    const chatCol = collection(db, 'chat');
-    // We need orderBy - import it
-    import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(({query, orderBy, limit, onSnapshot}) => {
-      const q = query(chatCol, orderBy('ts','asc'), limit(100));
-      chatUnsub = onSnapshot(q, snap => {
-        const msgs = snap.docs.map(d=>({id:d.id,...d.data()}));
-        renderChatMessages(msgs);
-      }, err => console.error('Chat listener error:', err));
-    });
-  } catch(e) { console.error('Chat init error:', e); }
-}
 
 function renderChatMessages(msgs) {
   const sel = document.getElementById('chat-sender');
@@ -675,33 +632,6 @@ function renderChatMessages(msgs) {
   setTimeout(()=>{container.scrollTop=container.scrollHeight;}, 80);
 }
 
-let chatEditId = null;
-
-window.sendChat = async function() {
-  const input = document.getElementById('chat-input');
-  const sel = document.getElementById('chat-sender');
-  const text = input ? input.value.trim() : '';
-  const sender = sel ? sel.value : 'Ich';
-  if (!text) return;
-  input.value = '';
-  // Reset send button
-  const sendBtn = document.querySelector('.chat-send-btn');
-  if(sendBtn) { sendBtn.style.background='var(--accent)'; sendBtn.innerHTML='<i class="ti ti-send" style="color:#fff;font-size:18px"></i>'; }
-  if (window._chatEditId) {
-    const eid = window._chatEditId;
-    window._chatEditId = null;
-    try {
-      await updateDoc(doc(db,'chat',eid), {text, edited:true});
-    } catch(e) { console.error('Edit error:', e); if(input) input.value=text; }
-  } else {
-    try {
-      await addDoc(collection(db,'chat'), { text, sender, ts: Date.now() });
-    } catch(e) {
-      console.error('Send error:', e);
-      if (input) input.value = text;
-    }
-  }
-};
 
 // Overview
 function renderOverview(){
@@ -1024,17 +954,44 @@ window.openCatDetail=catId=>{
   document.getElementById('catdetail-overlay').style.display='block';document.body.style.overflow='hidden';
 };
 window.closeCatDetail=()=>{document.getElementById('catdetail-overlay').style.display='none';document.body.style.overflow='';};
-
-// Chat helpers exposed to plain script
-window._deleteChat = async function(id) {
-  try { await deleteDoc(doc(db,'chat',id)); } catch(e) { console.error('Delete error:',e); }
-};
-window._updateChat = async function(id, text) {
-  try { await updateDoc(doc(db,'chat',id), {text, edited:true}); } catch(e) { console.error('Update error:',e); }
-};
+window.saveSettingsFromPlain=async function(){await saveSettings();if(window.renderSettings)window.renderSettings();};
 </script>
 
 <script>
+// ---- KATEGORIE BEARBEITEN ----
+var editCatId = null;
+function openEditCat(id) {
+  var sett = window._settings || {};
+  var cat = (sett.categories || []).find(function(c){ return c.id === id; });
+  if(!cat) return;
+  editCatId = id;
+  document.getElementById('edit-cat-name').value = cat.name;
+  document.getElementById('edit-cat-color').value = cat.color;
+  document.getElementById('edit-cat-preview').style.background = cat.color;
+  document.getElementById('cat-edit-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+window.openEditCat = openEditCat;
+function closeCatEdit() {
+  document.getElementById('cat-edit-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+  editCatId = null;
+}
+window.closeCatEdit = closeCatEdit;
+function saveCatEdit() {
+  if(!editCatId) return;
+  var name = document.getElementById('edit-cat-name').value.trim();
+  var color = document.getElementById('edit-cat-color').value;
+  if(!name) { document.getElementById('edit-cat-name').focus(); return; }
+  var cats = (window._settings || {}).categories || [];
+  for(var i=0;i<cats.length;i++){
+    if(cats[i].id===editCatId){ cats[i].name=name; cats[i].color=color; break; }
+  }
+  if(window.saveSettingsFromPlain) window.saveSettingsFromPlain();
+  closeCatEdit();
+}
+window.saveCatEdit = saveCatEdit;
+
 
 // Numpad
 let padVal='', padContext=null;
@@ -1306,57 +1263,6 @@ function selectMyName(name) {
 }
 window.selectMyName = selectMyName;
 
-// ---- CHAT ACTIONS ----
-var chatMenuId = null;
-var chatMenuText = null;
-var chatMenuIsMine = false;
-// Touch handlers removed - using button instead
-
-function openChatMenu(id, text, isMine) {
-  chatMenuId = id;
-  chatMenuText = text.replace(/&quot;/g, '"');
-  chatMenuIsMine = isMine === true || isMine === 'true';
-  var preview = document.getElementById('chat-preview-text');
-  if(preview) preview.textContent = chatMenuText;
-  var editBtn = document.getElementById('chat-edit-btn');
-  if(editBtn) editBtn.style.display = chatMenuIsMine ? 'flex' : 'none';
-  var menu = document.getElementById('chat-action-menu');
-  if(menu) { menu.style.display = 'block'; document.body.style.overflow = 'hidden'; }
-}
-window.openChatMenu = openChatMenu;
-
-function closeChatMenu() {
-  var menu = document.getElementById('chat-action-menu');
-  if(menu) menu.style.display = 'none';
-  document.body.style.overflow = '';
-  chatMenuId = null; chatMenuText = null;
-}
-window.closeChatMenu = closeChatMenu;
-
-function startChatEdit() {
-  if(!chatMenuId || !chatMenuIsMine) return;
-  var input = document.getElementById('chat-input');
-  if(input) {
-    input.value = chatMenuText;
-    input.focus();
-    window._chatEditId = chatMenuId;
-    // Change send button to show edit mode
-    var sendBtn = document.querySelector('.chat-send-btn');
-    if(sendBtn) { sendBtn.style.background='var(--orange)'; sendBtn.innerHTML='<i class="ti ti-check" style="color:#fff;font-size:18px"></i>'; }
-  }
-  closeChatMenu();
-}
-window.startChatEdit = startChatEdit;
-
-function deleteChatMsg() {
-  if(!chatMenuId) return;
-  var mid = chatMenuId;
-  closeChatMenu();
-  if(window._deleteChat) {
-    window._deleteChat(mid);
-  }
-}
-window.deleteChatMsg = deleteChatMsg;
 
 function selectAllPrompt() {
   var ta = document.getElementById('ai-prompt-text');
@@ -1378,5 +1284,30 @@ window.selectAllPrompt = selectAllPrompt;
 
 
 </script>
+
+<!-- CATEGORY EDIT MODAL -->
+<div id="cat-edit-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.5);" onclick="if(event.target===this)closeCatEdit()">
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--surface);border-radius:20px 20px 0 0;padding:0 0 calc(16px + var(--safe-bottom));">
+    <div style="display:flex;justify-content:center;padding:10px 0 0"><div style="width:36px;height:4px;border-radius:99px;background:var(--surface3)"></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px 16px">
+      <span style="font-size:17px;font-weight:700">Kategorie bearbeiten</span>
+      <button onclick="closeCatEdit()" style="background:var(--surface2);border:none;border-radius:99px;width:30px;height:30px;font-size:18px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:inherit;">x</button>
+    </div>
+    <div style="padding:0 16px 16px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em;font-weight:600">Name</div>
+        <input type="text" id="edit-cat-name" autocomplete="off" style="width:100%;padding:12px 14px;font-size:16px;background:var(--surface2);border:none;border-radius:var(--radius);color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;">
+      </div>
+      <div>
+        <div style="font-size:13px;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em;font-weight:600">Farbe</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input type="color" id="edit-cat-color" style="width:52px;height:52px;padding:3px;border:none;border-radius:12px;background:var(--surface2);cursor:pointer;flex-shrink:0;" oninput="document.getElementById('edit-cat-preview').style.background=this.value">
+          <div id="edit-cat-preview" style="flex:1;height:52px;border-radius:12px;transition:background .2s"></div>
+        </div>
+      </div>
+      <button onclick="saveCatEdit()" style="width:100%;padding:15px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:17px;font-weight:700;font-family:inherit;cursor:pointer;">Speichern</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
